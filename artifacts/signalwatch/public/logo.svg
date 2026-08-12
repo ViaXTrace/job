@@ -1,14 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
-  <!-- Background -->
-  <rect width="36" height="36" rx="10" fill="#116b68"/>
-  <!-- Waveform pulse — represents signal detection -->
-  <polyline
-    points="4,18 10,18 13,9 16,27 19,13 22,18 32,18"
-    stroke="#e9fff8"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <!-- Gold accent at the peak — the detected signal -->
-  <circle cx="13" cy="9" r="2.5" fill="#edb94b"/>
+  <!-- App-icon background -->
+  <rect width="36" height="36" rx="9" fill="#ffffff"/>
+  <!-- Bold bezier curve from filled dot (top-left) to ring (bottom-right) -->
+  <path d="M 11 9.5 C 12 20 25.5 15 25.5 27" stroke="#116b68" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+  <!-- Filled circle — signal origin -->
+  <circle cx="11" cy="9.5" r="3.4" fill="#116b68"/>
+  <!-- Ring / donut — detected signal -->
+  <circle cx="25.5" cy="27" r="4.5" stroke="#edb94b" stroke-width="2.8" fill="#ffffff"/>
 </svg>

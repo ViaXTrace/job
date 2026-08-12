@@ -146,12 +146,29 @@ function relativeDate(value?: string | null) {
 function formatDay(value?: string | null) { return value ? new Date(value).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'; }
 
 function Logo({ inverse = false }: { inverse?: boolean }) {
+  // bg: white on light / dark-teal on dark sidebar
+  const bg = inverse ? '#0f4f4b' : '#ffffff';
+  // curve + filled dot color
+  const stroke = inverse ? '#e9fff8' : '#116b68';
+  // ring fill (same as bg so it punches through)
+  const ringFill = bg;
   return (
     <div className="flex items-center gap-2.5" data-testid="brand-logo">
       <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="36" height="36" rx="10" fill={inverse ? '#80f2d4' : '#116b68'} />
-        <polyline points="4,18 10,18 13,9 16,27 19,13 22,18 32,18" stroke={inverse ? '#12383a' : '#e9fff8'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="13" cy="9" r="2.5" fill="#edb94b" />
+        {/* App-icon background */}
+        <rect width="36" height="36" rx="9" fill={bg} />
+        {/* Bold bezier curve from filled dot (top-left) → ring (bottom-right) */}
+        <path
+          d="M 11 9.5 C 12 20 25.5 15 25.5 27"
+          stroke={stroke}
+          strokeWidth="3.2"
+          strokeLinecap="round"
+          fill="none"
+        />
+        {/* Filled circle — signal origin */}
+        <circle cx="11" cy="9.5" r="3.4" fill={stroke} />
+        {/* Ring / donut — detected signal */}
+        <circle cx="25.5" cy="27" r="4.5" stroke="#edb94b" strokeWidth="2.8" fill={ringFill} />
       </svg>
       <span className={`sw-display text-xl font-bold tracking-[-.04em] ${inverse ? 'text-[#e9fff8]' : 'text-[#12383a]'}`}>SignalWatch</span>
     </div>
@@ -194,19 +211,98 @@ function AppShell({ children }: { children: ReactNode }) {
   const userInitials = initials(user?.fullName ?? user?.firstName ?? '');
   const userName = user?.fullName ?? user?.firstName ?? 'Usuário';
   const userEmail = user?.primaryEmailAddress?.emailAddress ?? '';
-  return <div className="sw-noise min-h-[100dvh] bg-[#edf7f3] text-[#12383a]">
-    <aside className={`fixed inset-y-0 left-0 z-40 flex w-[252px] flex-col bg-[#12383a] px-4 py-5 text-[#d5eee8] transition-transform lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-      <div className="px-2"><Logo inverse /></div>
-      <div className="mt-10 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-[#79aaa1]">Operação</div>
-      <nav className="mt-3 space-y-1">{navItems.map(item => <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold ${location === item.href || (!item.exact && location.startsWith(item.href)) ? 'bg-[#23615f] text-[#effff9]' : 'text-[#a9ccc4] hover:bg-[#1b4d4d] hover:text-[#effff9]'}`} data-testid={`link-nav-${item.label.toLowerCase().replaceAll(' ', '-')}`}><item.icon size={17} strokeWidth={1.8} /><span>{item.label}</span>{item.label === 'Alertas' && <span className="ml-auto rounded-full bg-[#edbd54] px-1.5 py-0.5 text-[10px] font-extrabold text-[#244543]">8</span>}</Link>)}</nav>
-      <div className="mt-8 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-[#79aaa1]">Configuração</div>
-      <nav className="mt-3 space-y-1">{utilityItems.map(item => <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold ${location.startsWith(item.href) ? 'bg-[#23615f] text-[#effff9]' : 'text-[#a9ccc4] hover:bg-[#1b4d4d] hover:text-[#effff9]'}`} data-testid={`link-nav-${item.label.toLowerCase().replaceAll(' ', '-')}`}><item.icon size={17} strokeWidth={1.8} /><span>{item.label}</span>{item.label === 'Conexão' && <span className="ml-auto h-2 w-2 rounded-full bg-[#edbd54]" />}</Link>)}</nav>
-      <div className="mt-auto rounded-xl border border-[#356d69] bg-[#1a4a4a] p-3.5"><div className="flex items-center justify-between"><span className="text-xs font-bold text-[#e6fff8]">Plano Pulso</span><Pill tone="amber">2 / 5 grupos</Pill></div><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#356d69]"><div className="h-full w-[42%] rounded-full bg-[#80e0c0]" /></div><Link href="/app/billing" className="mt-3 flex items-center justify-between text-xs font-semibold text-[#94d7c7] hover:text-[#effff9]" data-testid="link-sidebar-billing">Ver detalhes <ArrowRight size={13} /></Link></div>
-      <div className="mt-4 flex items-center gap-3 border-t border-[#2a5c5b] px-2 pt-4">{user?.imageUrl ? <img src={user.imageUrl} className="h-8 w-8 rounded-full object-cover" alt="" /> : <div className="grid h-8 w-8 place-items-center rounded-full bg-[#edbd54] text-xs font-extrabold text-[#264847]">{userInitials}</div>}<div className="min-w-0"><div className="truncate text-xs font-bold text-[#effff9]">{userName}</div><div className="truncate text-[11px] text-[#86b2a8]">{userEmail}</div></div><button onClick={() => signOut({ redirectUrl: basePath || '/' })} className="ml-auto text-[#86b2a8] hover:text-white" aria-label="Sair" data-testid="button-sign-out"><LogOut size={15} /></button></div>
-    </aside>
-    {mobileOpen && <button className="fixed inset-0 z-30 bg-[#12383a]/40 lg:hidden" onClick={() => setMobileOpen(false)} aria-label="Fechar menu" data-testid="button-close-menu" />}
-    <div className="lg:pl-[252px]"><header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-[#d2e8e1] bg-[#edf7f3]/90 px-5 backdrop-blur lg:px-9"><div className="flex items-center gap-3"><button className="rounded-lg p-2 text-[#386a66] hover:bg-[#dcefe9] lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Abrir menu" data-testid="button-open-menu"><Menu size={20} /></button><div className="hidden text-xs font-bold text-[#6a8985] sm:block">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div><div className="text-sm font-semibold text-[#12383a] sm:hidden">{new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' })}</div></div><div className="flex items-center gap-2.5"><Link href="/app/connection" className="hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold text-[#527b76] hover:bg-[#dcefe9] sm:flex" data-testid="link-header-connection"><span className="h-2 w-2 rounded-full bg-[#edbd54]" /> Telegram não conectado</Link><button className="relative rounded-lg p-2.5 text-[#4f7773] hover:bg-[#dcefe9]" aria-label="Notificações" data-testid="button-notifications"><Bell size={18} /><span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#de765f]" /></button>{user?.imageUrl ? <img src={user.imageUrl} className="h-8 w-8 rounded-full object-cover" alt="" /> : <div className="grid h-8 w-8 place-items-center rounded-full bg-[#d8b467] text-xs font-extrabold text-[#264847]">{userInitials}</div>}</div></header><main className="mx-auto max-w-[1440px] px-5 py-7 lg:px-9 lg:py-9">{children}</main></div>
-  </div>;
+
+  // Real unread count — drives sidebar badge and header bell dot
+  const summaryQuery = useGetDashboardSummary({ query: { queryKey: getGetDashboardSummaryQueryKey(), staleTime: 30_000 } });
+  const unreadCount = summaryQuery.data?.unreadAlerts ?? 0;
+
+  return (
+    <div className="sw-noise min-h-[100dvh] bg-[#edf7f3] text-[#12383a]">
+      <aside className={`fixed inset-y-0 left-0 z-40 flex w-[252px] flex-col bg-[#12383a] px-4 py-5 text-[#d5eee8] transition-transform lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="px-2"><Logo inverse /></div>
+        <div className="mt-10 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-[#79aaa1]">Operação</div>
+        <nav className="mt-3 space-y-1">
+          {navItems.map(item => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold ${location === item.href || (!item.exact && location.startsWith(item.href)) ? 'bg-[#23615f] text-[#effff9]' : 'text-[#a9ccc4] hover:bg-[#1b4d4d] hover:text-[#effff9]'}`}
+              data-testid={`link-nav-${item.label.toLowerCase().replaceAll(' ', '-')}`}
+            >
+              <item.icon size={17} strokeWidth={1.8} />
+              <span>{item.label}</span>
+              {/* Badge — only render when there are real unread alerts */}
+              {item.label === 'Alertas' && unreadCount > 0 && (
+                <span className="ml-auto rounded-full bg-[#edbd54] px-1.5 py-0.5 text-[10px] font-extrabold text-[#244543]">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </Link>
+          ))}
+        </nav>
+        <div className="mt-8 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-[#79aaa1]">Configuração</div>
+        <nav className="mt-3 space-y-1">
+          {utilityItems.map(item => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold ${location.startsWith(item.href) ? 'bg-[#23615f] text-[#effff9]' : 'text-[#a9ccc4] hover:bg-[#1b4d4d] hover:text-[#effff9]'}`}
+              data-testid={`link-nav-${item.label.toLowerCase().replaceAll(' ', '-')}`}
+            >
+              <item.icon size={17} strokeWidth={1.8} />
+              <span>{item.label}</span>
+              {item.label === 'Conexão' && <span className="ml-auto h-2 w-2 rounded-full bg-[#edbd54]" />}
+            </Link>
+          ))}
+        </nav>
+        <div className="mt-auto rounded-xl border border-[#356d69] bg-[#1a4a4a] p-3.5">
+          <div className="flex items-center justify-between"><span className="text-xs font-bold text-[#e6fff8]">Plano Pulso</span><Pill tone="amber">2 / 5 grupos</Pill></div>
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#356d69]"><div className="h-full w-[42%] rounded-full bg-[#80e0c0]" /></div>
+          <Link href="/app/billing" className="mt-3 flex items-center justify-between text-xs font-semibold text-[#94d7c7] hover:text-[#effff9]" data-testid="link-sidebar-billing">Ver detalhes <ArrowRight size={13} /></Link>
+        </div>
+        <div className="mt-4 flex items-center gap-3 border-t border-[#2a5c5b] px-2 pt-4">
+          {user?.imageUrl
+            ? <img src={user.imageUrl} className="h-8 w-8 rounded-full object-cover" alt="" />
+            : <div className="grid h-8 w-8 place-items-center rounded-full bg-[#edbd54] text-xs font-extrabold text-[#264847]">{userInitials}</div>
+          }
+          <div className="min-w-0">
+            <div className="truncate text-xs font-bold text-[#effff9]">{userName}</div>
+            <div className="truncate text-[11px] text-[#86b2a8]">{userEmail}</div>
+          </div>
+          <button onClick={() => signOut({ redirectUrl: basePath || '/' })} className="ml-auto text-[#86b2a8] hover:text-white" aria-label="Sair" data-testid="button-sign-out"><LogOut size={15} /></button>
+        </div>
+      </aside>
+
+      {mobileOpen && <button className="fixed inset-0 z-30 bg-[#12383a]/40 lg:hidden" onClick={() => setMobileOpen(false)} aria-label="Fechar menu" data-testid="button-close-menu" />}
+
+      <div className="lg:pl-[252px]">
+        <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-[#d2e8e1] bg-[#edf7f3]/90 px-5 backdrop-blur lg:px-9">
+          <div className="flex items-center gap-3">
+            <button className="rounded-lg p-2 text-[#386a66] hover:bg-[#dcefe9] lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Abrir menu" data-testid="button-open-menu"><Menu size={20} /></button>
+            <div className="hidden text-xs font-bold text-[#6a8985] sm:block">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
+            <div className="text-sm font-semibold text-[#12383a] sm:hidden">{new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Link href="/app/connection" className="hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold text-[#527b76] hover:bg-[#dcefe9] sm:flex" data-testid="link-header-connection">
+              <span className="h-2 w-2 rounded-full bg-[#edbd54]" /> Telegram não conectado
+            </Link>
+            {/* Bell — red dot only when there are real unread alerts */}
+            <button className="relative rounded-lg p-2.5 text-[#4f7773] hover:bg-[#dcefe9]" aria-label="Notificações" data-testid="button-notifications">
+              <Bell size={18} />
+              {unreadCount > 0 && <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#de765f]" />}
+            </button>
+            {user?.imageUrl
+              ? <img src={user.imageUrl} className="h-8 w-8 rounded-full object-cover" alt="" />
+              : <div className="grid h-8 w-8 place-items-center rounded-full bg-[#d8b467] text-xs font-extrabold text-[#264847]">{userInitials}</div>
+            }
+          </div>
+        </header>
+        <main className="mx-auto max-w-[1440px] px-5 py-7 lg:px-9 lg:py-9">{children}</main>
+      </div>
+    </div>
+  );
 }
 
 function PageHeader({ eyebrow, title, description, action }: { eyebrow: string; title: string; description: string; action?: ReactNode }) {
