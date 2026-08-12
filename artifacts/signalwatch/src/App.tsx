@@ -22,7 +22,7 @@ import type {
   Alert, BillingPlan, BillingStatus, DashboardSummary, KeywordRule, TelegramConnection,
   TelegramGroup, UserPreference,
 } from '@workspace/api-client-react';
-import { ClerkProvider, Redirect, Show, SignIn, SignUp, useAuth, useClerk, useUser } from '@clerk/react';
+import { ClerkProvider, Redirect, Show, SignIn, SignUp, useClerk, useUser } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -289,8 +289,6 @@ function ConnectionPage({ onboarding = false }: { onboarding?: boolean }) {
   const refresh = useRefreshConnection();
   const disconnect = useDisconnectTelegram();
   const qc = useQueryClient();
-  const { getToken } = useAuth();
-
   // QR + SSE state
   const [qrData, setQrData] = useState<string | null>(null);
   const [qrExpiresAt, setQrExpiresAt] = useState<Date | null>(null);
@@ -319,10 +317,9 @@ function ConnectionPage({ onboarding = false }: { onboarding?: boolean }) {
   async function openSSE() {
     sseRef.current?.close();
     try {
-      const token = await getToken();
       const authResp = await fetch(`${basePath}/api/connection/events/auth`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'same-origin',
       });
       if (!authResp.ok) return;
       const { nonce } = await authResp.json() as { nonce: string };
@@ -384,10 +381,10 @@ function ConnectionPage({ onboarding = false }: { onboarding?: boolean }) {
     setSubmitting2FA(true);
     setError2FA('');
     try {
-      const token = await getToken();
       const resp = await fetch(`${basePath}/api/connection/2fa`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ password: password2FA }),
       });
       if (!resp.ok) throw new Error('failed');
@@ -609,17 +606,20 @@ function OnboardingPage() {
     setSaving(true);
     setNameError('');
     try {
-      const token = await user?.getToken();
-    const resp = await fetch(`${basePath}/api/profile/name`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ firstName: firstName.trim(), lastName: lastName.trim() }),
-    });
-    if (!resp.ok) throw new Error('failed');
-    await user?.reload();
-    setStep(2);
-    } catch {
-      setNameError('Não foi possível salvar. Tente novamente.');
+      const resp = await fetch(`${basePath}/api/profile/name`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ firstName: firstName.trim(), lastName: lastName.trim() }),
+      });
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => ({})) as { error?: string };
+        throw new Error(body.error ?? `HTTP ${resp.status}`);
+      }
+      await user?.reload();
+      setStep(2);
+    } catch (e) {
+      setNameError(`Não foi possível salvar: ${e instanceof Error ? e.message : 'tente novamente.'}`);
     } finally {
       setSaving(false);
     }
