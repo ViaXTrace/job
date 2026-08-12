@@ -22,7 +22,7 @@ import type {
   Alert, BillingPlan, BillingStatus, DashboardSummary, KeywordRule, TelegramConnection,
   TelegramGroup, UserPreference,
 } from '@workspace/api-client-react';
-import { ClerkProvider, Redirect, Show, SignIn, SignUp, useClerk, useUser } from '@clerk/react';
+import { ClerkProvider, Redirect, Show, SignIn, SignUp, useClerk, useSignIn, useUser } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -713,7 +713,7 @@ function ConnectionPage({ onboarding = false }: { onboarding?: boolean }) {
             <div className="mt-5 flex gap-3">
               <button
                 onClick={() => { setShow2FA(false); setPassword2FA(''); setError2FA(''); }}
-                className="flex-1 rounded-lg border border-border py-2.5 text-sm font-bold text-muted-foreground hover:bg-[#eef8f4]"
+                className="flex-1 rounded-lg border border-border py-2.5 text-sm font-bold text-muted-foreground hover:bg-accent"
                 data-testid="button-cancel-2fa"
               >Cancelar</button>
               <button
@@ -731,7 +731,7 @@ function ConnectionPage({ onboarding = false }: { onboarding?: boolean }) {
         {/* Left panel — session state */}
         <section className="sw-card rounded-2xl p-6 lg:p-8">
           <div className="flex items-center gap-3">
-            <div className={`grid h-11 w-11 place-items-center rounded-xl ${unavailable ? 'bg-[#fee8da] text-[#a4751c]' : connection.status === 'connected' ? 'bg-[#fee8da] text-[#252525]' : 'bg-[#e1f1f2] text-foreground'}`}>
+            <div className={`grid h-11 w-11 place-items-center rounded-xl ${unavailable ? 'bg-[#fee8da] text-[#a4751c]' : connection.status === 'connected' ? 'bg-[#fee8da] text-[#e8531a]' : 'bg-accent text-foreground'}`}>
               <Link2 size={20} />
             </div>
             <div>
@@ -742,8 +742,8 @@ function ConnectionPage({ onboarding = false }: { onboarding?: boolean }) {
             </div>
           </div>
 
-          <div className="mt-7 rounded-xl bg-[#eef8f4] p-4">
-            <div className="flex items-center gap-2 text-sm font-bold text-[#252525]"><ShieldCheck size={17} /> Privacidade por desenho</div>
+          <div className="mt-7 rounded-xl bg-accent/50 p-4">
+            <div className="flex items-center gap-2 text-sm font-bold text-foreground"><ShieldCheck size={17} /> Privacidade por desenho</div>
             <p className="mt-2 text-sm leading-6 text-foreground">Sua sessão fica vinculada à sua conta. Nenhum grupo é monitorado até você escolher ativá-lo.</p>
           </div>
 
@@ -754,7 +754,7 @@ function ConnectionPage({ onboarding = false }: { onboarding?: boolean }) {
             </div>
           ) : connection.status === 'connected' ? (
             <div className="mt-6 space-y-4">
-              <div className="flex items-center justify-between rounded-xl border border-[#fee8da] p-4">
+              <div className="flex items-center justify-between rounded-xl border border-border p-4">
                 <div>
                   <div className="text-xs text-muted-foreground">Conta autorizada</div>
                   <div className="mt-1 font-bold text-foreground">{connection.accountLabel ?? 'Conta Telegram'}</div>
@@ -762,13 +762,13 @@ function ConnectionPage({ onboarding = false }: { onboarding?: boolean }) {
                 <Pill tone="teal"><Check size={12} /> Ativa</Pill>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-[#f0f8f5] p-4">
+                <div className="rounded-xl bg-accent/50 p-4">
                   <div className="text-xs text-muted-foreground">Última sincronização</div>
-                  <div className="mt-1 text-sm font-bold text-[#252525]">{formatDay(connection.lastSyncAt)}</div>
+                  <div className="mt-1 text-sm font-bold text-foreground">{formatDay(connection.lastSyncAt)}</div>
                 </div>
-                <div className="rounded-xl bg-[#f0f8f5] p-4">
+                <div className="rounded-xl bg-accent/50 p-4">
                   <div className="text-xs text-muted-foreground">Último evento</div>
-                  <div className="mt-1 text-sm font-bold text-[#252525]">{formatDay(connection.lastEventAt)}</div>
+                  <div className="mt-1 text-sm font-bold text-foreground">{formatDay(connection.lastEventAt)}</div>
                 </div>
               </div>
               <Button variant="danger" onClick={doDisconnect} disabled={disconnect.isPending} data-testid="button-disconnect-telegram">
@@ -806,7 +806,7 @@ function ConnectionPage({ onboarding = false }: { onboarding?: boolean }) {
             </div>
 
             {showingQr ? (
-              <div className="mt-7 flex flex-col items-center rounded-2xl border border-[#fee8da] bg-[#f7fffb] p-6 text-center">
+              <div className="mt-7 flex flex-col items-center rounded-2xl border border-border bg-accent/30 p-6 text-center">
                 <img src={qrData!} alt="QR code Telegram" className="h-52 w-52 rounded-xl" />
                 <div className="mt-3 flex items-center gap-2">
                   <Pill tone={qrSecondsLeft < 8 ? 'amber' : 'teal'}>
@@ -818,11 +818,11 @@ function ConnectionPage({ onboarding = false }: { onboarding?: boolean }) {
                 </p>
               </div>
             ) : (
-              <div className="mt-7 rounded-2xl border border-dashed border-border bg-[#f4fbf8] p-8 text-center">
-                <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#fee8da] text-foreground">
+              <div className="mt-7 rounded-2xl border border-dashed border-border bg-accent/30 p-8 text-center">
+                <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-accent text-foreground">
                   <QrCode size={26} />
                 </div>
-                <h3 className="sw-display mt-4 text-lg font-bold text-[#1a1a1a]">Nenhuma autorização em andamento</h3>
+                <h3 className="sw-display mt-4 text-lg font-bold text-foreground">Nenhuma autorização em andamento</h3>
                 <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
                   Clique em "Autorizar com QR code" para gerar um código. Ele é atualizado automaticamente em tempo real.
                 </p>
@@ -832,9 +832,9 @@ function ConnectionPage({ onboarding = false }: { onboarding?: boolean }) {
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {[['1', 'Solicite', 'Gere uma autorização segura'], ['2', 'Escaneie', 'Use Dispositivos no Telegram'], ['3', 'Escolha', 'Ative os grupos certos']].map(([n, t, b]) => (
                 <div key={n} className="flex gap-3">
-                  <div className="sw-mono grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#fee8da] text-[11px] font-bold text-[#252525]">{n}</div>
+                  <div className="sw-mono grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#fee8da] text-[11px] font-bold text-[#c43e12]">{n}</div>
                   <div>
-                    <div className="text-xs font-bold text-[#252525]">{t}</div>
+                    <div className="text-xs font-bold text-foreground">{t}</div>
                     <div className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{b}</div>
                   </div>
                 </div>
@@ -996,10 +996,29 @@ function SettingsPage() {
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#fee8da] text-[#c43e12]"><Sparkles size={18} /></div>
               <div className="flex-1">
                 <div className="text-sm font-bold text-foreground">Notificações no app</div>
-                <div className="mt-1 text-xs text-muted-foreground">Mostre avisos quando uma regra encontrar um sinal.</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {'Notification' in window && Notification.permission === 'denied'
+                    ? 'Permissão bloqueada no navegador. Habilite nas configurações do site.'
+                    : 'Mostre avisos quando uma regra encontrar um sinal.'}
+                </div>
               </div>
-              <button onClick={() => set('inAppNotifications', !form.inAppNotifications)} className={`relative h-6 w-11 rounded-full transition-colors ${form.inAppNotifications ? 'bg-[#e8531a]' : 'bg-muted-foreground/30'}`} aria-label="Alternar notificações" data-testid="button-toggle-notifications">
-                <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${form.inAppNotifications ? 'translate-x-6' : 'translate-x-1'}`} />
+              <button
+                role="switch"
+                aria-checked={form.inAppNotifications}
+                aria-label="Alternar notificações"
+                data-testid="button-toggle-notifications"
+                onClick={async () => {
+                  const next = !form.inAppNotifications;
+                  // Request browser permission when enabling for the first time
+                  if (next && 'Notification' in window && Notification.permission === 'default') {
+                    await Notification.requestPermission();
+                  }
+                  set('inAppNotifications', next);
+                }}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${form.inAppNotifications ? 'bg-[#e8531a]' : 'bg-muted-foreground/30'}`}
+              >
+                {/* thumb — block (not absolute) so translate is self-contained */}
+                <span className={`pointer-events-none block h-5 w-5 rounded-full bg-white shadow-md transition-transform duration-200 ${form.inAppNotifications ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
             </div>
             <div className="mt-6 flex justify-end">
@@ -1392,10 +1411,205 @@ function ClerkQueryClientCacheInvalidator() {
 
 function SignInPage() {
   return (
-    <div className="sw-noise flex min-h-[100dvh] items-center justify-center bg-[#0f0f0f] px-4">
+    <div className="sw-noise flex min-h-[100dvh] flex-col items-center justify-center gap-3 bg-[#0f0f0f] px-4">
       <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+      <Link
+        href="/forgot-password"
+        className="text-sm text-[#6b6560] transition-colors hover:text-[#e8e5e0]"
+        data-testid="link-forgot-password"
+      >
+        Esqueceu sua senha?
+      </Link>
     </div>
   );
+}
+
+type ForgotStep = 'email' | 'code' | 'done';
+
+function ForgotPasswordPage() {
+  const { signIn, isLoaded } = useSignIn();
+  const [step, setStep] = useState<ForgotStep>('email');
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [, setLocation] = useLocation();
+
+  async function handleSendCode(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isLoaded) return;
+    setLoading(true);
+    setError('');
+    try {
+      await signIn!.create({ strategy: 'reset_password_email_code', identifier: email });
+      setStep('code');
+    } catch (err: unknown) {
+      const clerkErr = err as { errors?: { message: string }[] };
+      setError(clerkErr.errors?.[0]?.message ?? 'Não foi possível enviar o código. Verifique o email.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResetPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isLoaded) return;
+    setLoading(true);
+    setError('');
+    try {
+      const result = await signIn!.attemptFirstFactor({
+        strategy: 'reset_password_email_code',
+        code,
+        password,
+      } as Parameters<typeof signIn.attemptFirstFactor>[0]);
+      if (result.status === 'complete') {
+        setStep('done');
+        setTimeout(() => setLocation('/sign-in'), 2500);
+      } else {
+        setError('Não foi possível confirmar. Tente novamente.');
+      }
+    } catch (err: unknown) {
+      const clerkErr = err as { errors?: { message: string }[] };
+      setError(clerkErr.errors?.[0]?.message ?? 'Código ou senha inválidos.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const shell = (content: React.ReactNode) => (
+    <div className="sw-noise flex min-h-[100dvh] items-center justify-center bg-[#0f0f0f] px-4">
+      <div className="w-[440px] max-w-full overflow-hidden rounded-2xl bg-card shadow-xl">
+        {/* header */}
+        <div className="flex flex-col items-center gap-3 border-b border-border bg-card px-8 pt-8 pb-6">
+          <Logo />
+          {step !== 'done' && (
+            <>
+              <h1 className="sw-display text-xl font-bold text-foreground">
+                {step === 'email' ? 'Redefinir senha' : 'Nova senha'}
+              </h1>
+              <p className="text-center text-sm text-muted-foreground">
+                {step === 'email'
+                  ? 'Digite seu email e enviaremos um código de verificação.'
+                  : <>Enviamos um código para <span className="font-semibold text-foreground">{email}</span>. Insira-o abaixo junto com sua nova senha.</>}
+              </p>
+            </>
+          )}
+        </div>
+
+        {/* body */}
+        <div className="px-8 py-7">
+          {/* ── Step 1: email ───────────────────────────── */}
+          {step === 'email' && (
+            <form onSubmit={handleSendCode} className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-foreground">Email</label>
+                <input
+                  type="email"
+                  required
+                  autoFocus
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="form-input w-full"
+                  data-testid="input-forgot-email"
+                />
+              </div>
+              {error && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
+              <button
+                type="submit"
+                disabled={loading || !email}
+                className="w-full rounded-xl bg-[#e8531a] py-3 text-sm font-bold text-white shadow-[0_6px_16px_rgba(232,83,26,.22)] transition hover:bg-[#d44517] disabled:opacity-50"
+                data-testid="button-send-reset-code"
+              >
+                {loading ? 'Enviando…' : 'Enviar código'}
+              </button>
+              <Link
+                href="/sign-in"
+                className="block text-center text-sm text-muted-foreground hover:text-foreground"
+              >
+                ← Voltar para o login
+              </Link>
+            </form>
+          )}
+
+          {/* ── Step 2: code + new password ─────────────── */}
+          {step === 'code' && (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-foreground">Código de verificação</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  required
+                  autoFocus
+                  value={code}
+                  onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                  placeholder="000000"
+                  className="form-input w-full tracking-[.3em]"
+                  data-testid="input-reset-code"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-foreground">Nova senha</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="Mínimo 8 caracteres"
+                    className="form-input w-full pr-11"
+                    data-testid="input-new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(s => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              {error && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
+              <button
+                type="submit"
+                disabled={loading || !code || !password}
+                className="w-full rounded-xl bg-[#e8531a] py-3 text-sm font-bold text-white shadow-[0_6px_16px_rgba(232,83,26,.22)] transition hover:bg-[#d44517] disabled:opacity-50"
+                data-testid="button-confirm-reset"
+              >
+                {loading ? 'Redefinindo…' : 'Redefinir senha'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setStep('email'); setCode(''); setPassword(''); setError(''); }}
+                className="block w-full text-center text-sm text-muted-foreground hover:text-foreground"
+              >
+                ← Reenviar código
+              </button>
+            </form>
+          )}
+
+          {/* ── Step 3: done ────────────────────────────── */}
+          {step === 'done' && (
+            <div className="flex flex-col items-center gap-4 py-4 text-center">
+              <div className="grid h-14 w-14 place-items-center rounded-full bg-[#e8531a]/10">
+                <CheckCircle2 size={28} className="text-[#e8531a]" />
+              </div>
+              <h2 className="sw-display text-xl font-bold text-foreground">Senha redefinida!</h2>
+              <p className="text-sm text-muted-foreground">
+                Sua senha foi alterada com sucesso. Redirecionando para o login…
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  return shell(null);
 }
 
 function SignUpPage() {
@@ -1436,6 +1650,7 @@ function Router() {
         <Route path="/" component={HomeRoute} />
         <Route path="/sign-in/*?" component={SignInPage} />
         <Route path="/sign-up/*?" component={SignUpPage} />
+        <Route path="/forgot-password" component={ForgotPasswordPage} />
         <Route path="/onboarding" component={OnboardingPage} />
         <Route path="/app" component={() => <ProtectedRoute><AppShell><Dashboard /></AppShell></ProtectedRoute>} />
         <Route path="/app/alerts" component={() => <ProtectedRoute><AppShell><AlertsPage /></AppShell></ProtectedRoute>} />
