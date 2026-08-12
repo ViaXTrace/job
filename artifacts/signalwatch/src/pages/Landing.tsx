@@ -254,20 +254,20 @@ export default function Landing() {
         </section>
 
         {/* ── Dark CTA / Conformidade ────────────────────────────────────── */}
-        <section className="bg-[#0f0f0f] px-5 py-20 text-[#e8e5e0] lg:px-10">
+        <section className="bg-[#0f0f0f] px-5 py-20 dark:bg-card lg:px-10">
           <div className="mx-auto max-w-7xl">
             <div className="mb-12 grid gap-8 lg:grid-cols-[1fr_auto]">
               <div>
                 <div className="mb-3 text-[11px] font-bold uppercase tracking-[.17em] text-[#e8531a]">Privacidade e conformidade</div>
-                <h2 className="text-3xl font-bold leading-tight tracking-[-0.045em] text-white lg:text-4xl">
+                <h2 className="text-3xl font-bold leading-tight tracking-[-0.045em] text-white dark:text-foreground lg:text-4xl">
                   Seus dados, seu controle,<br />sua jurisdição.
                 </h2>
-                <p className="mt-4 max-w-xl text-sm leading-7 text-[#9a9490]">
+                <p className="mt-4 max-w-xl text-sm leading-7 text-[#9a9490] dark:text-muted-foreground">
                   A arquitetura foi projetada com isolamento como premissa — não como recurso adicional. Abaixo estão os compromissos estruturais do produto.
                 </p>
               </div>
               <div className="flex items-start">
-                <Link href="/privacy" className="inline-flex items-center gap-2 rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2.5 text-sm font-semibold text-[#e8531a] hover:bg-[#252525]">
+                <Link href="/privacy" className="inline-flex items-center gap-2 rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2.5 text-sm font-semibold text-[#e8531a] hover:bg-[#252525] dark:border-border dark:bg-muted dark:hover:bg-accent">
                   <FileText size={15} />
                   Política de privacidade
                 </Link>
@@ -281,12 +281,12 @@ export default function Landing() {
                 { icon: Scale, title: 'Dados por usuário', body: 'Histórico, grupos, regras e alertas ficam segregados por conta. Nada é compartilhado ou agregado entre usuários.' },
                 { icon: BookOpen, title: 'Auditoria de acesso', body: 'Cada sessão ativa é registrada com dispositivo, IP e horário. Revogue acesso de dispositivos suspeitos na plataforma.' },
               ].map(({ icon: Icon, title, body }) => (
-                <div key={title} className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-                  <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#252525] text-[#e8531a]">
+                <div key={title} className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 dark:border-border dark:bg-background">
+                  <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#252525] text-[#e8531a] dark:bg-accent dark:text-accent-foreground">
                     <Icon size={16} />
                   </div>
-                  <h3 className="mt-4 text-sm font-bold text-white">{title}</h3>
-                  <p className="mt-2 text-[13px] leading-6 text-muted-foreground">{body}</p>
+                  <h3 className="mt-4 text-sm font-bold text-white dark:text-foreground">{title}</h3>
+                  <p className="mt-2 text-[13px] leading-6 text-[#9a9490] dark:text-muted-foreground">{body}</p>
                 </div>
               ))}
             </div>

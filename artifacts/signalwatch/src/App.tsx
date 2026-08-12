@@ -40,6 +40,8 @@ const ThemeContext = React.createContext<{ theme: Theme; toggle: () => void }>({
 function useTheme() { return useContext(ThemeContext); }
 
 function ThemeProvider({ children }: { children: ReactNode }) {
+  // Track whether the user has explicitly picked a theme (vs. following system)
+  const [userChosen, setUserChosen] = useState<boolean>(() => !!localStorage.getItem('vx-theme'));
   const [theme, setTheme] = useState<Theme>(() => {
     const stored = localStorage.getItem('vx-theme') as Theme | null;
     if (stored === 'light' || stored === 'dark') return stored;
@@ -48,20 +50,25 @@ function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem('vx-theme', theme);
-  }, [theme]);
+    // Only persist when the user has made an explicit choice; otherwise system
+    // preference changes must remain free to update the theme.
+    if (userChosen) localStorage.setItem('vx-theme', theme);
+  }, [theme, userChosen]);
 
-  // Follow system preference changes only when user hasn't explicitly chosen
+  // Follow system preference changes whenever the user hasn't pinned a choice
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem('vx-theme')) setTheme(e.matches ? 'dark' : 'light');
+      if (!userChosen) setTheme(e.matches ? 'dark' : 'light');
     };
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
-  }, []);
+  }, [userChosen]);
 
-  const toggle = useCallback(() => setTheme(t => t === 'dark' ? 'light' : 'dark'), []);
+  const toggle = useCallback(() => {
+    setUserChosen(true);
+    setTheme(t => t === 'dark' ? 'light' : 'dark');
+  }, []);
   return <ThemeContext.Provider value={{ theme, toggle }}>{children}</ThemeContext.Provider>;
 }
 // ──────────────────────────────────────────────────────────────────────────────
