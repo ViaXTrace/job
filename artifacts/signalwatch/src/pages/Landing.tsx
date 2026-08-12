@@ -12,7 +12,7 @@ function Logo() {
       </svg>
       <div className="flex flex-col leading-none">
         <span className="text-[11px] font-bold uppercase tracking-[.22em] text-[#e8531a]">ViaX</span>
-        <span className="text-base font-bold tracking-[-0.02em] text-[#0f0f0f]">Trace</span>
+        <span className="text-base font-bold tracking-[-0.02em] text-foreground">Trace</span>
       </div>
     </div>
   );
@@ -26,18 +26,18 @@ const PREVIEW_ALERTS = [
 
 export default function Landing() {
   return (
-    <div className="vx-noise min-h-[100dvh] overflow-hidden bg-[#f4f3ef] text-[#0f0f0f]">
+    <div className="vx-noise min-h-[100dvh] overflow-hidden bg-background text-foreground">
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 lg:px-10">
         <Logo />
-        <nav className="hidden items-center gap-8 text-sm font-semibold text-[#6b6560] md:flex">
+        <nav className="hidden items-center gap-8 text-sm font-semibold text-muted-foreground md:flex">
           <a href="#como-funciona" className="hover:text-[#e8531a]">Como funciona</a>
           <a href="#diferenciais" className="hover:text-[#e8531a]">Diferenciais</a>
           <Link href="/privacy" className="hover:text-[#e8531a]">Privacidade</Link>
         </nav>
         <div className="flex items-center gap-2">
-          <Link href="/sign-in" className="rounded-lg px-4 py-2.5 text-sm font-semibold text-[#6b6560] hover:bg-[#e8e5df] hover:text-[#0f0f0f]" data-testid="link-landing-sign-in">
+          <Link href="/sign-in" className="rounded-lg px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-[#e8e5df] hover:text-foreground" data-testid="link-landing-sign-in">
             Entrar
           </Link>
           <Link href="/sign-up" className="rounded-lg bg-[#e8531a] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#d44517]" data-testid="link-landing-sign-up">
@@ -55,12 +55,12 @@ export default function Landing() {
               Captura de promoções · Tempo real
             </div>
 
-            <h1 className="max-w-lg text-[2.9rem] font-bold leading-[1.06] tracking-[-0.055em] text-[#0f0f0f] lg:text-[3.9rem]">
+            <h1 className="max-w-lg text-[2.9rem] font-bold leading-[1.06] tracking-[-0.055em] text-foreground lg:text-[3.9rem]">
               Capture promoções antes que<br />
               <span className="text-[#e8531a]">todo mundo veja.</span>
             </h1>
 
-            <p className="mt-6 max-w-md text-[0.95rem] leading-[1.85] text-[#6b6560]">
+            <p className="mt-6 max-w-md text-[0.95rem] leading-[1.85] text-muted-foreground">
               ViaX: Trace monitora grupos do Telegram pela palavra-chave que você definiu. Quando uma promoção aparece, você é o primeiro a saber — com controle total sobre o que é monitorado.
             </p>
 
@@ -68,7 +68,7 @@ export default function Landing() {
               <Link href="/sign-in" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e8531a] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(232,83,26,.28)] hover:bg-[#d44517]" data-testid="link-hero-start">
                 Acessar plataforma <ChevronRight size={16} />
               </Link>
-              <Link href="/privacy" className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#e0dcd5] bg-white px-6 py-3.5 text-sm font-semibold text-[#6b6560] hover:bg-[#f4f3ef]" data-testid="link-hero-docs">
+              <Link href="/privacy" className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-sm font-semibold text-muted-foreground hover:bg-background" data-testid="link-hero-docs">
                 Política de privacidade
               </Link>
             </div>
@@ -80,13 +80,13 @@ export default function Landing() {
                 { icon: Target, label: 'Por keyword', sub: 'Você define o radar' },
                 { icon: Lock, label: 'Sessão segura', sub: 'AES-256-GCM' },
               ].map(({ icon: Icon, label, sub }) => (
-                <div key={label} className="flex items-start gap-2.5 rounded-xl border border-[#e0dcd5] bg-white px-3.5 py-3">
+                <div key={label} className="flex items-start gap-2.5 rounded-xl border border-border bg-card px-3.5 py-3">
                   <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#fee8da] text-[#e8531a]">
                     <Icon size={13} />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-[#0f0f0f]">{label}</div>
-                    <div className="mt-0.5 text-[10px] leading-4 text-[#78736e]">{sub}</div>
+                    <div className="text-xs font-bold text-foreground">{label}</div>
+                    <div className="mt-0.5 text-[10px] leading-4 text-muted-foreground">{sub}</div>
                   </div>
                 </div>
               ))}
@@ -103,20 +103,20 @@ export default function Landing() {
                     <div className="grid h-6 w-6 place-items-center rounded-lg bg-[#0f0f0f] text-white">
                       <Terminal size={12} />
                     </div>
-                    <span className="text-sm font-bold text-[#0f0f0f]">trace / hoje</span>
+                    <span className="text-sm font-bold text-foreground">trace / hoje</span>
                   </div>
                   <span className="font-mono text-[9px] text-[#9a9490]">LIVE · 24 capturas</span>
                 </div>
                 <div className="grid grid-cols-[1fr_1.35fr]">
                   <div className="border-r border-[#f0c8b0] bg-[#fff4ee] p-4">
                     <div className="text-[9px] font-bold uppercase tracking-widest text-[#9a9490]">Panorama</div>
-                    <div className="mt-4 text-3xl font-bold tracking-[-0.06em] text-[#0f0f0f]">24</div>
-                    <div className="text-[10px] text-[#78736e]">promos hoje</div>
+                    <div className="mt-4 text-3xl font-bold tracking-[-0.06em] text-foreground">24</div>
+                    <div className="text-[10px] text-muted-foreground">promos hoje</div>
                     <div className="mt-5 space-y-2.5">
                       {[['Não lidas', '08', 'bg-[#e8531a]'], ['Regras', '02', 'bg-[#0f0f0f]'], ['Grupos', '04', 'bg-[#c43e12]']].map(([label, count, color]) => (
                         <div key={label} className="flex items-center justify-between">
-                          <span className="text-[10px] text-[#78736e]">{label}</span>
-                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-[#0f0f0f]">
+                          <span className="text-[10px] text-muted-foreground">{label}</span>
+                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-foreground">
                             <i className={`h-1.5 w-1.5 rounded-full ${color}`} />{count}
                           </span>
                         </div>
@@ -135,12 +135,12 @@ export default function Landing() {
                     <div className="text-[9px] font-bold uppercase tracking-widest text-[#9a9490]">Capturas recentes</div>
                     <div className="mt-3 space-y-2.5">
                       {PREVIEW_ALERTS.map((a, i) => (
-                        <div key={a.id} className={`rounded-lg border p-2.5 ${i === 0 ? 'border-[#f0c8b0] bg-[#fff4ee]' : 'border-[#e8e5df] bg-[#fafaf8]'}`}>
+                        <div key={a.id} className={`rounded-lg border p-2.5 ${i === 0 ? 'border-[#f0c8b0] bg-[#fff4ee]' : 'border-border bg-card'}`}>
                           <div className="flex items-center gap-1 text-[8px] font-bold text-[#c43e12]">
                             <span className={`h-1.5 w-1.5 rounded-full ${i === 0 ? 'bg-[#e8531a]' : 'bg-[#c8c4be]'}`} />
                             {a.groupName}
                           </div>
-                          <div className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#3a3632]">{a.message}</div>
+                          <div className="mt-1 line-clamp-2 text-[10px] leading-4 text-foreground">{a.message}</div>
                           <div className="mt-1.5">
                             <span className="rounded bg-[#fee8da] px-1.5 py-0.5 font-mono text-[7px] text-[#e8531a]">#{a.keyword}</span>
                           </div>
@@ -155,14 +155,14 @@ export default function Landing() {
         </section>
 
         {/* ── Como funciona ──────────────────────────────────────────────── */}
-        <section id="como-funciona" className="border-y border-[#e4e1db] bg-white px-5 py-20 lg:px-10">
+        <section id="como-funciona" className="border-y border-border bg-card px-5 py-20 lg:px-10">
           <div className="mx-auto max-w-7xl">
             <div className="mb-12 max-w-xl">
               <div className="mb-3 text-[11px] font-bold uppercase tracking-[.17em] text-[#e8531a]">Fluxo operacional</div>
-              <h2 className="text-3xl font-bold leading-tight tracking-[-0.045em] text-[#0f0f0f] lg:text-4xl">
+              <h2 className="text-3xl font-bold leading-tight tracking-[-0.045em] text-foreground lg:text-4xl">
                 Do grupo ao alerta.<br />Em segundos.
               </h2>
-              <p className="mt-4 text-sm leading-7 text-[#6b6560]">
+              <p className="mt-4 text-sm leading-7 text-muted-foreground">
                 Configure uma vez. O ViaX: Trace fica rodando, varrendo os grupos escolhidos, e notifica você assim que a palavra-chave aparecer — sem ruído, sem delay.
               </p>
             </div>
@@ -190,16 +190,16 @@ export default function Landing() {
                     badge: 'Rastreável · Auditável',
                   },
                 ].map(({ n, title, body, badge }) => (
-                  <div key={n} className="relative flex gap-6 rounded-2xl border border-[#e4e1db] bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,.05)]">
+                  <div key={n} className="relative flex gap-6 rounded-2xl border border-border bg-card p-6 shadow-[0_2px_12px_rgba(0,0,0,.05)]">
                     <div className="relative z-10 grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#0f0f0f] text-white text-sm font-bold">
                       {n}
                     </div>
                     <div className="flex-1">
                       <div className="flex flex-wrap items-start justify-between gap-2">
-                        <h3 className="text-base font-bold text-[#0f0f0f]">{title}</h3>
+                        <h3 className="text-base font-bold text-foreground">{title}</h3>
                         <span className="rounded-full bg-[#fee8da] px-2.5 py-1 text-[10px] font-bold text-[#c43e12]">{badge}</span>
                       </div>
-                      <p className="mt-2 text-sm leading-7 text-[#6b6560]">{body}</p>
+                      <p className="mt-2 text-sm leading-7 text-muted-foreground">{body}</p>
                     </div>
                   </div>
                 ))}
@@ -212,7 +212,7 @@ export default function Landing() {
         <section id="diferenciais" className="mx-auto max-w-7xl px-5 py-20 lg:px-10">
           <div className="mb-12 max-w-xl">
             <div className="mb-3 text-[11px] font-bold uppercase tracking-[.17em] text-[#e8531a]">Por que ViaX: Trace</div>
-            <h2 className="text-3xl font-bold leading-tight tracking-[-0.045em] text-[#0f0f0f] lg:text-4xl">
+            <h2 className="text-3xl font-bold leading-tight tracking-[-0.045em] text-foreground lg:text-4xl">
               Controle total.<br />Sem compromisso com o ruído.
             </h2>
           </div>
@@ -238,15 +238,15 @@ export default function Landing() {
                 body: 'Cada captura registra origem, horário e regra que a gerou. O histórico é auditável e deletável a qualquer momento diretamente nas configurações.',
               },
             ].map(({ n, icon: Icon, title, body }) => (
-              <div key={n} className="rounded-2xl border border-[#e4e1db] bg-white p-6">
+              <div key={n} className="rounded-2xl border border-border bg-card p-6">
                 <div className="flex items-center gap-3">
                   <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#fee8da] text-[#e8531a]">
                     <Icon size={16} />
                   </div>
                   <span className="font-mono text-xs font-bold text-[#9a9490]">{n}</span>
                 </div>
-                <h3 className="mt-5 text-lg font-bold text-[#0f0f0f]">{title}</h3>
-                <p className="mt-2.5 text-sm leading-[1.75] text-[#6b6560]">{body}</p>
+                <h3 className="mt-5 text-lg font-bold text-foreground">{title}</h3>
+                <p className="mt-2.5 text-sm leading-[1.75] text-muted-foreground">{body}</p>
               </div>
             ))}
           </div>
@@ -285,7 +285,7 @@ export default function Landing() {
                     <Icon size={16} />
                   </div>
                   <h3 className="mt-4 text-sm font-bold text-white">{title}</h3>
-                  <p className="mt-2 text-[13px] leading-6 text-[#78736e]">{body}</p>
+                  <p className="mt-2 text-[13px] leading-6 text-muted-foreground">{body}</p>
                 </div>
               ))}
             </div>
@@ -293,7 +293,7 @@ export default function Landing() {
         </section>
 
         {/* ── Documentação ───────────────────────────────────────────────── */}
-        <section className="border-y border-[#e4e1db] bg-[#fafaf8] px-5 py-16 lg:px-10">
+        <section className="border-y border-border bg-card px-5 py-16 lg:px-10">
           <div className="mx-auto max-w-7xl">
             <div className="mb-8 text-[11px] font-bold uppercase tracking-[.17em] text-[#e8531a]">Estrutura legal e técnica</div>
             <div className="grid gap-3 sm:grid-cols-3">
@@ -302,13 +302,13 @@ export default function Landing() {
                 { icon: ShieldCheck, label: 'Política de privacidade', href: '/privacy', desc: 'Como os dados são coletados, processados e protegidos conforme a LGPD.' },
                 { icon: BookOpen, label: 'Central de ajuda', href: '/privacy', desc: 'Documentação operacional, FAQs e guias de configuração de regras e conexão.' },
               ].map(({ icon: Icon, label, href, desc }) => (
-                <Link key={label} href={href} className="group flex gap-4 rounded-xl border border-[#e4e1db] bg-white p-5 hover:border-[#e8531a]/30 hover:shadow-[0_4px_16px_rgba(232,83,26,.08)]">
-                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#fee8da] text-[#e8531a] group-hover:bg-[#fde0cc]">
+                <Link key={label} href={href} className="group flex gap-4 rounded-xl border border-border bg-card p-5 hover:border-[#e8531a]/30 hover:shadow-[0_4px_16px_rgba(232,83,26,.08)]">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#fee8da] text-[#e8531a] group-hover:bg-accent">
                     <Icon size={16} />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-[#0f0f0f]">{label}</div>
-                    <p className="mt-1 text-xs leading-5 text-[#6b6560]">{desc}</p>
+                    <div className="text-sm font-bold text-foreground">{label}</div>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{desc}</p>
                   </div>
                 </Link>
               ))}
@@ -318,10 +318,10 @@ export default function Landing() {
       </main>
 
       {/* ── Footer ─────────────────────────────────────────────────────────── */}
-      <footer className="border-t border-[#e4e1db] bg-[#f4f3ef]">
+      <footer className="border-t border-border bg-background">
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 px-5 py-8 sm:flex-row sm:items-center lg:px-10">
           <Logo />
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-[#78736e]">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground">
             <Link href="/terms" className="hover:text-[#e8531a]" data-testid="link-footer-terms">Termos de uso</Link>
             <Link href="/privacy" className="hover:text-[#e8531a]" data-testid="link-footer-privacy">Privacidade</Link>
             <span className="text-[#9a9490]">© 2026 ViaX: Trace</span>
