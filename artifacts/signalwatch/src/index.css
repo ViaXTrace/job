@@ -323,3 +323,11 @@
   .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after { inset: -1px; }
 }
+
+/* ── Clerk overrides ─────────────────────────────────────────────────────── */
+/* Hide "Last used" badge on social login buttons */
+.cl-badge,
+[data-localization-key="badge__lastUsed"],
+[data-localization-key="badge__primary"] {
+  display: none !important;
+}
