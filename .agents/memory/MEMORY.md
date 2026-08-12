@@ -1,1 +1,2 @@
 - [Escopo de notificações](telegram-notification-scope.md) — o produto não terá bot no Telegram; alertas ficam exclusivamente dentro do SaaS.
+- [SignalWatch estado de implementação](signalwatch-implementation-state.md) — o que foi construído (backend, DB, frontend) e o que falta (Clerk UI, listener Telegram, Pix).
