@@ -97,26 +97,27 @@ export default function Landing() {
           <div className="relative">
             <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[#fcc4a0] opacity-40 blur-3xl" />
             <div className="relative rounded-[24px] border border-[#e8531a]/20 bg-[#fee8da] p-3 shadow-[0_28px_72px_rgba(232,83,26,.18)] lg:rotate-[1deg]">
+              {/* This card is intentionally always light — it's a product screenshot mockup */}
               <div className="overflow-hidden rounded-[18px] border border-[#f0c8b0] bg-[#fffcfa]">
                 <div className="flex items-center justify-between border-b border-[#f0c8b0] bg-[#fff8f4] px-5 py-3.5">
                   <div className="flex items-center gap-2">
                     <div className="grid h-6 w-6 place-items-center rounded-lg bg-[#0f0f0f] text-white">
                       <Terminal size={12} />
                     </div>
-                    <span className="text-sm font-bold text-foreground">trace / hoje</span>
+                    <span className="text-sm font-bold text-[#0f0f0f]">trace / hoje</span>
                   </div>
                   <span className="font-mono text-[9px] text-[#9a9490]">LIVE · 24 capturas</span>
                 </div>
                 <div className="grid grid-cols-[1fr_1.35fr]">
                   <div className="border-r border-[#f0c8b0] bg-[#fff4ee] p-4">
                     <div className="text-[9px] font-bold uppercase tracking-widest text-[#9a9490]">Panorama</div>
-                    <div className="mt-4 text-3xl font-bold tracking-[-0.06em] text-foreground">24</div>
-                    <div className="text-[10px] text-muted-foreground">promos hoje</div>
+                    <div className="mt-4 text-3xl font-bold tracking-[-0.06em] text-[#0f0f0f]">24</div>
+                    <div className="text-[10px] text-[#6b6560]">promos hoje</div>
                     <div className="mt-5 space-y-2.5">
                       {[['Não lidas', '08', 'bg-[#e8531a]'], ['Regras', '02', 'bg-[#0f0f0f]'], ['Grupos', '04', 'bg-[#c43e12]']].map(([label, count, color]) => (
                         <div key={label} className="flex items-center justify-between">
-                          <span className="text-[10px] text-muted-foreground">{label}</span>
-                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-foreground">
+                          <span className="text-[10px] text-[#6b6560]">{label}</span>
+                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-[#0f0f0f]">
                             <i className={`h-1.5 w-1.5 rounded-full ${color}`} />{count}
                           </span>
                         </div>
@@ -135,12 +136,12 @@ export default function Landing() {
                     <div className="text-[9px] font-bold uppercase tracking-widest text-[#9a9490]">Capturas recentes</div>
                     <div className="mt-3 space-y-2.5">
                       {PREVIEW_ALERTS.map((a, i) => (
-                        <div key={a.id} className={`rounded-lg border p-2.5 ${i === 0 ? 'border-[#f0c8b0] bg-[#fff4ee]' : 'border-border bg-card'}`}>
+                        <div key={a.id} className={`rounded-lg border p-2.5 ${i === 0 ? 'border-[#f0c8b0] bg-[#fff4ee]' : 'border-[#e4e1db] bg-white'}`}>
                           <div className="flex items-center gap-1 text-[8px] font-bold text-[#c43e12]">
                             <span className={`h-1.5 w-1.5 rounded-full ${i === 0 ? 'bg-[#e8531a]' : 'bg-[#c8c4be]'}`} />
                             {a.groupName}
                           </div>
-                          <div className="mt-1 line-clamp-2 text-[10px] leading-4 text-foreground">{a.message}</div>
+                          <div className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#0f0f0f]">{a.message}</div>
                           <div className="mt-1.5">
                             <span className="rounded bg-[#fee8da] px-1.5 py-0.5 font-mono text-[7px] text-[#e8531a]">#{a.keyword}</span>
                           </div>
