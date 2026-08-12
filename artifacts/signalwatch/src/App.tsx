@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from 'react';
+import React, { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import {
   Activity, ArrowRight, Bell, Check, CheckCircle2, ChevronDown, CircleAlert, CircleDot,
@@ -22,14 +22,83 @@ import type {
   Alert, BillingPlan, BillingStatus, DashboardSummary, KeywordRule, TelegramConnection,
   TelegramGroup, UserPreference,
 } from '@workspace/api-client-react';
+import { ClerkProvider, Redirect, Show, SignIn, SignUp, useClerk, useUser } from '@clerk/react';
+import { publishableKeyFromHost } from '@clerk/react/internal';
+import { shadcn } from '@clerk/themes';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { toast } from '@/hooks/use-toast';
-import { Link, Route, Router as WouterRouter, Switch, useLocation } from 'wouter';
+import { Link, Redirect as WouterRedirect, Route, Router as WouterRouter, Switch, useLocation } from 'wouter';
 import Landing from '@/pages/Landing';
 
 const queryClient = new QueryClient();
+
+// ── Clerk setup ────────────────────────────────────────────────────────────────
+const clerkPubKey = publishableKeyFromHost(
+  window.location.hostname,
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
+);
+const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+function stripBase(path: string): string {
+  return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || '/' : path;
+}
+
+function initials(name: string): string {
+  return name.split(' ').slice(0, 2).map((n: string) => n[0]).join('').toUpperCase() || '?';
+}
+
+const clerkAppearance = {
+  theme: shadcn,
+  cssLayerName: 'clerk',
+  options: {
+    logoPlacement: 'inside' as const,
+    logoLinkUrl: basePath || '/',
+    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+  },
+  variables: {
+    colorPrimary: '#116b68',
+    colorForeground: '#12383a',
+    colorMutedForeground: '#6d8984',
+    colorDanger: '#de765f',
+    colorBackground: '#edf7f3',
+    colorInput: '#ffffff',
+    colorInputForeground: '#12383a',
+    colorNeutral: '#c4dfd6',
+    fontFamily: 'Manrope, sans-serif',
+    borderRadius: '0.75rem',
+  },
+  elements: {
+    rootBox: 'w-full flex justify-center',
+    cardBox: 'bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-lg',
+    card: '!shadow-none !border-0 !bg-transparent !rounded-none',
+    footer: '!shadow-none !border-0 !bg-transparent !rounded-none',
+    headerTitle: 'text-[#12383a] font-[var(--app-font-serif)]',
+    headerSubtitle: 'text-[#6d8984]',
+    socialButtonsBlockButtonText: 'text-[#12383a] font-semibold',
+    formFieldLabel: 'text-[#315c58] font-semibold text-sm',
+    footerActionLink: 'text-[#116b68] font-bold',
+    footerActionText: 'text-[#6d8984]',
+    dividerText: 'text-[#9ab0ab] font-bold text-[11px] uppercase tracking-wider',
+    identityPreviewEditButton: 'text-[#116b68]',
+    formFieldSuccessText: 'text-[#116b68]',
+    alertText: 'text-[#12383a]',
+    logoBox: 'mb-2',
+    logoImage: 'h-8 w-8',
+    socialButtonsBlockButton: 'border border-[#c4dfd7] bg-[#fafffd] hover:bg-[#e3f4ed]',
+    formButtonPrimary: 'bg-[#116b68] hover:bg-[#0d5754] text-white font-bold',
+    formFieldInput: 'border-[#c4dfd6] bg-white text-[#12383a] focus:border-[#116b68]',
+    footerAction: 'bg-[#f4fbf7]',
+    dividerLine: 'bg-[#dceae5]',
+    alert: 'bg-[#fff8f6] border-[#de765f]',
+    otpCodeFieldInput: 'border-[#c4dfd6]',
+    formFieldRow: 'gap-3',
+    main: 'gap-5',
+  },
+};
+// ──────────────────────────────────────────────────────────────────────────────
 
 const fallbackConnection: TelegramConnection = {
   status: 'not_connected',
@@ -118,6 +187,11 @@ const utilityItems = [
 function AppShell({ children }: { children: ReactNode }) {
   const [location, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const userInitials = initials(user?.fullName ?? user?.firstName ?? '');
+  const userName = user?.fullName ?? user?.firstName ?? 'Usuário';
+  const userEmail = user?.primaryEmailAddress?.emailAddress ?? '';
   return <div className="sw-noise min-h-[100dvh] bg-[#edf7f3] text-[#12383a]">
     <aside className={`fixed inset-y-0 left-0 z-40 flex w-[252px] flex-col bg-[#12383a] px-4 py-5 text-[#d5eee8] transition-transform lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       <div className="px-2"><Logo inverse /></div>
@@ -126,10 +200,10 @@ function AppShell({ children }: { children: ReactNode }) {
       <div className="mt-8 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-[#79aaa1]">Configuração</div>
       <nav className="mt-3 space-y-1">{utilityItems.map(item => <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold ${location.startsWith(item.href) ? 'bg-[#23615f] text-[#effff9]' : 'text-[#a9ccc4] hover:bg-[#1b4d4d] hover:text-[#effff9]'}`} data-testid={`link-nav-${item.label.toLowerCase().replaceAll(' ', '-')}`}><item.icon size={17} strokeWidth={1.8} /><span>{item.label}</span>{item.label === 'Conexão' && <span className="ml-auto h-2 w-2 rounded-full bg-[#edbd54]" />}</Link>)}</nav>
       <div className="mt-auto rounded-xl border border-[#356d69] bg-[#1a4a4a] p-3.5"><div className="flex items-center justify-between"><span className="text-xs font-bold text-[#e6fff8]">Plano Pulso</span><Pill tone="amber">2 / 5 grupos</Pill></div><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#356d69]"><div className="h-full w-[42%] rounded-full bg-[#80e0c0]" /></div><Link href="/app/billing" className="mt-3 flex items-center justify-between text-xs font-semibold text-[#94d7c7] hover:text-[#effff9]" data-testid="link-sidebar-billing">Ver detalhes <ArrowRight size={13} /></Link></div>
-      <div className="mt-4 flex items-center gap-3 border-t border-[#2a5c5b] px-2 pt-4"><div className="grid h-8 w-8 place-items-center rounded-full bg-[#edbd54] text-xs font-extrabold text-[#264847]">MC</div><div className="min-w-0"><div className="truncate text-xs font-bold text-[#effff9]">Marina Costa</div><div className="truncate text-[11px] text-[#86b2a8]">marina@estaleiro.co</div></div><button className="ml-auto text-[#86b2a8] hover:text-white" aria-label="Sair" data-testid="button-sign-out"><LogOut size={15} /></button></div>
+      <div className="mt-4 flex items-center gap-3 border-t border-[#2a5c5b] px-2 pt-4">{user?.imageUrl ? <img src={user.imageUrl} className="h-8 w-8 rounded-full object-cover" alt="" /> : <div className="grid h-8 w-8 place-items-center rounded-full bg-[#edbd54] text-xs font-extrabold text-[#264847]">{userInitials}</div>}<div className="min-w-0"><div className="truncate text-xs font-bold text-[#effff9]">{userName}</div><div className="truncate text-[11px] text-[#86b2a8]">{userEmail}</div></div><button onClick={() => signOut({ redirectUrl: basePath || '/' })} className="ml-auto text-[#86b2a8] hover:text-white" aria-label="Sair" data-testid="button-sign-out"><LogOut size={15} /></button></div>
     </aside>
     {mobileOpen && <button className="fixed inset-0 z-30 bg-[#12383a]/40 lg:hidden" onClick={() => setMobileOpen(false)} aria-label="Fechar menu" data-testid="button-close-menu" />}
-    <div className="lg:pl-[252px]"><header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-[#d2e8e1] bg-[#edf7f3]/90 px-5 backdrop-blur lg:px-9"><div className="flex items-center gap-3"><button className="rounded-lg p-2 text-[#386a66] hover:bg-[#dcefe9] lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Abrir menu" data-testid="button-open-menu"><Menu size={20} /></button><div className="hidden text-xs font-bold text-[#6a8985] sm:block">terça-feira, 18 de fevereiro de 2025</div><div className="text-sm font-semibold text-[#12383a] sm:hidden">terça, 18 fev</div></div><div className="flex items-center gap-2.5"><Link href="/app/connection" className="hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold text-[#527b76] hover:bg-[#dcefe9] sm:flex" data-testid="link-header-connection"><span className="h-2 w-2 rounded-full bg-[#edbd54]" /> Telegram não conectado</Link><button className="relative rounded-lg p-2.5 text-[#4f7773] hover:bg-[#dcefe9]" aria-label="Notificações" data-testid="button-notifications"><Bell size={18} /><span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#de765f]" /></button><div className="grid h-8 w-8 place-items-center rounded-full bg-[#d8b467] text-xs font-extrabold text-[#264847]">MC</div></div></header><main className="mx-auto max-w-[1440px] px-5 py-7 lg:px-9 lg:py-9">{children}</main></div>
+    <div className="lg:pl-[252px]"><header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-[#d2e8e1] bg-[#edf7f3]/90 px-5 backdrop-blur lg:px-9"><div className="flex items-center gap-3"><button className="rounded-lg p-2 text-[#386a66] hover:bg-[#dcefe9] lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Abrir menu" data-testid="button-open-menu"><Menu size={20} /></button><div className="hidden text-xs font-bold text-[#6a8985] sm:block">terça-feira, 18 de fevereiro de 2025</div><div className="text-sm font-semibold text-[#12383a] sm:hidden">terça, 18 fev</div></div><div className="flex items-center gap-2.5"><Link href="/app/connection" className="hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold text-[#527b76] hover:bg-[#dcefe9] sm:flex" data-testid="link-header-connection"><span className="h-2 w-2 rounded-full bg-[#edbd54]" /> Telegram não conectado</Link><button className="relative rounded-lg p-2.5 text-[#4f7773] hover:bg-[#dcefe9]" aria-label="Notificações" data-testid="button-notifications"><Bell size={18} /><span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#de765f]" /></button>{user?.imageUrl ? <img src={user.imageUrl} className="h-8 w-8 rounded-full object-cover" alt="" /> : <div className="grid h-8 w-8 place-items-center rounded-full bg-[#d8b467] text-xs font-extrabold text-[#264847]">{userInitials}</div>}</div></header><main className="mx-auto max-w-[1440px] px-5 py-7 lg:px-9 lg:py-9">{children}</main></div>
   </div>;
 }
 
@@ -234,21 +308,118 @@ function OnboardingPage() {
 }
 
 
-function AuthPage({ signUp = false }: { signUp?: boolean }) {
-  const [, setLocation] = useLocation(); const [showPassword, setShowPassword] = useState(false);
-  return <div className="sw-noise grid min-h-[100dvh] bg-[#12383a] lg:grid-cols-[.9fr_1.1fr]"><div className="hidden flex-col justify-between p-10 text-[#e4f8f0] lg:flex"><Logo inverse /><div className="max-w-md pb-10"><div className="mb-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[.17em] text-[#80dfc0]"><span className="h-1.5 w-1.5 rounded-full bg-[#edbd54]" /> find the signal</div><h1 className="sw-display text-6xl font-bold leading-[.98] tracking-[-.06em]">Clareza para<br />agir melhor.</h1><p className="mt-6 text-base leading-7 text-[#a4c9bf]">Seu espaço operacional para encontrar oportunidades nos grupos certos — sem passar o dia rolando.</p><div className="mt-10 flex items-center gap-3 text-xs text-[#80b4a7]"><ShieldCheck size={16} className="text-[#80dfc0]" /> Integração segura e estados sempre explícitos</div></div></div><div className="flex items-center justify-center bg-[#edf7f3] px-5 py-10"><div className="w-full max-w-md"><div className="mb-10 lg:hidden"><Logo /></div><div className="sw-card rounded-2xl p-6 sm:p-9"><div className="text-[11px] font-bold uppercase tracking-[.17em] text-[#398a80]">SignalWatch account</div><h1 className="sw-display mt-3 text-3xl font-bold tracking-[-.04em] text-[#12383a]">{signUp ? 'Crie seu radar.' : 'Bem-vinda de volta.'}</h1><p className="mt-2 text-sm leading-6 text-[#6d8984]">{signUp ? 'Configure em minutos. Ajuste quando o seu contexto mudar.' : 'Entre para ver os sinais que pedem sua atenção.'}</p><button onClick={() => setLocation('/app')} className="mt-7 flex w-full items-center justify-center gap-2 rounded-lg border border-[#c4dfd7] bg-[#fafffd] px-4 py-3 text-sm font-bold text-[#315e5a] hover:bg-[#e3f4ed]" data-testid="button-auth-google"><Globe2 size={17} /> Continuar com Google</button><div className="my-6 flex items-center gap-3 text-[11px] font-bold uppercase tracking-wider text-[#9ab0ab]"><span className="h-px flex-1 bg-[#dceae5]" /> ou <span className="h-px flex-1 bg-[#dceae5]" /></div><Field label="E-mail"><input type="email" placeholder="voce@empresa.com.br" className="form-input" data-testid="input-auth-email" /></Field><Field label="Senha"><div className="relative"><input type={showPassword ? 'text' : 'password'} placeholder="••••••••" className="form-input pr-10" data-testid="input-auth-password" /><button onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2.5 text-[#78958f]" aria-label="Mostrar senha" data-testid="button-toggle-password">{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></Field>{signUp && <Field label="Nome da empresa"><input placeholder="Sua empresa" className="form-input" data-testid="input-auth-company" /></Field>}<button onClick={() => setLocation(signUp ? '/onboarding' : '/app')} className="mt-6 w-full rounded-lg bg-[#116b68] px-4 py-3 text-sm font-bold text-white hover:bg-[#0d5754]" data-testid="button-submit-auth">{signUp ? 'Criar conta' : 'Entrar'}</button><p className="mt-5 text-center text-xs leading-5 text-[#78938e]">{signUp ? 'Ao criar sua conta, você concorda com os termos de uso.' : 'Problemas para entrar? Fale com o suporte.'}</p></div><div className="mt-6 text-center text-sm text-[#6f8c87]">{signUp ? 'Já tem uma conta?' : 'Ainda não tem uma conta?'} <Link href={signUp ? '/sign-in' : '/sign-up'} className="font-bold text-[#22756d] hover:underline" data-testid="link-switch-auth">{signUp ? 'Entrar' : 'Criar conta'}</Link></div><div className="mt-7 text-center"><Link href="/" className="text-xs font-bold text-[#78938e] hover:text-[#22756d]" data-testid="link-auth-home">← Voltar para início</Link></div></div></div></div>;
-}
 
 function LegalPage({ privacy = false }: { privacy?: boolean }) {
   return <div className="min-h-[100dvh] bg-[#edf7f3] text-[#234a49]"><header className="mx-auto flex max-w-5xl items-center justify-between px-5 py-6"><Logo /><Link href="/" className="text-sm font-bold text-[#477772]" data-testid="link-legal-home">Voltar para início</Link></header><main className="mx-auto max-w-3xl px-5 pb-20 pt-10"><div className="text-[11px] font-bold uppercase tracking-[.17em] text-[#398a80]">SignalWatch · documento legal</div><h1 className="sw-display mt-3 text-5xl font-bold tracking-[-.05em] text-[#12383a]">{privacy ? 'Política de privacidade' : 'Termos de uso'}</h1><p className="mt-4 text-sm text-[#78938e]">Última atualização: 18 de fevereiro de 2025</p><div className="prose prose-sm mt-12 max-w-none prose-headings:font-[var(--app-font-serif)] prose-headings:text-[#12383a] prose-p:leading-7 prose-p:text-[#5d7d78] prose-li:text-[#5d7d78]"><h2>1. Escopo</h2><p>{privacy ? 'Esta política explica quais dados o SignalWatch trata para entregar alertas de oportunidades comerciais e como você pode controlar esse tratamento.' : 'Estes termos regulam o uso do SignalWatch, uma ferramenta para monitoramento configurável de grupos do Telegram e organização de alertas comerciais.'}</p><h2>2. Uso responsável</h2><p>Você é responsável por usar o serviço de acordo com as regras do Telegram, com a legislação aplicável e com as permissões necessárias para os grupos que escolher monitorar.</p><h2>3. Integrações e estados</h2><p>Integrações de terceiros podem estar indisponíveis, pendentes ou sujeitas a confirmação externa. O SignalWatch informa esses estados sem presumir que uma autorização ou pagamento foi concluído.</p><h2>4. Dados e controle</h2><p>{privacy ? 'Tratamos dados de conta, preferências, grupos selecionados e mensagens necessárias para encontrar correspondências às suas regras. Você pode desconectar a sessão, alterar preferências e solicitar exclusão.' : 'Você mantém controle sobre suas regras, grupos e sessão. Recursos e limites podem variar conforme o plano contratado.'}</p><h2>5. Contato</h2><p>Para dúvidas sobre estes documentos ou sobre sua conta, use o canal de suporte indicado dentro do produto.</p></div></main></div>;
 }
 
+function ClerkQueryClientCacheInvalidator() {
+  const { addListener } = useClerk();
+  const qc = useQueryClient();
+  const prevUserIdRef = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    const unsub = addListener(({ user }) => {
+      const uid = user?.id ?? null;
+      if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== uid) {
+        qc.clear();
+      }
+      prevUserIdRef.current = uid;
+    });
+    return unsub;
+  }, [addListener, qc]);
+  return null;
+}
+
+function SignInPage() {
+  return (
+    <div className="sw-noise flex min-h-[100dvh] items-center justify-center bg-[#12383a] px-4">
+      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+    </div>
+  );
+}
+
+function SignUpPage() {
+  return (
+    <div className="sw-noise flex min-h-[100dvh] items-center justify-center bg-[#12383a] px-4">
+      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+    </div>
+  );
+}
+
+function HomeRoute() {
+  return (
+    <>
+      <Show when="signed-in"><WouterRedirect to="/app" /></Show>
+      <Show when="signed-out"><Landing /></Show>
+    </>
+  );
+}
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <Show when="signed-in">{children}</Show>
+      <Show when="signed-out"><WouterRedirect to="/sign-in" /></Show>
+    </>
+  );
+}
+
 function Router() {
-  return <ErrorBoundary><Switch><Route path="/" component={Landing} /><Route path="/sign-in" component={() => <AuthPage />} /><Route path="/sign-in/*" component={() => <AuthPage />} /><Route path="/sign-up" component={() => <AuthPage signUp />} /><Route path="/sign-up/*" component={() => <AuthPage signUp />} /><Route path="/onboarding" component={OnboardingPage} /><Route path="/app" component={() => <AppShell><Dashboard /></AppShell>} /><Route path="/app/alerts" component={() => <AppShell><AlertsPage /></AppShell>} /><Route path="/app/rules" component={() => <AppShell><RulesPage /></AppShell>} /><Route path="/app/groups" component={() => <AppShell><GroupsPage /></AppShell>} /><Route path="/app/connection" component={() => <AppShell><ConnectionPage /></AppShell>} /><Route path="/app/billing" component={() => <AppShell><BillingPage /></AppShell>} /><Route path="/app/settings" component={() => <AppShell><SettingsPage /></AppShell>} /><Route path="/terms" component={() => <LegalPage />} /><Route path="/privacy" component={() => <LegalPage privacy />} /><Route component={Landing} /></Switch></ErrorBoundary>;
+  return (
+    <ErrorBoundary>
+      <Switch>
+        <Route path="/" component={HomeRoute} />
+        <Route path="/sign-in/*?" component={SignInPage} />
+        <Route path="/sign-up/*?" component={SignUpPage} />
+        <Route path="/onboarding" component={OnboardingPage} />
+        <Route path="/app" component={() => <ProtectedRoute><AppShell><Dashboard /></AppShell></ProtectedRoute>} />
+        <Route path="/app/alerts" component={() => <ProtectedRoute><AppShell><AlertsPage /></AppShell></ProtectedRoute>} />
+        <Route path="/app/rules" component={() => <ProtectedRoute><AppShell><RulesPage /></AppShell></ProtectedRoute>} />
+        <Route path="/app/groups" component={() => <ProtectedRoute><AppShell><GroupsPage /></AppShell></ProtectedRoute>} />
+        <Route path="/app/connection" component={() => <ProtectedRoute><AppShell><ConnectionPage /></AppShell></ProtectedRoute>} />
+        <Route path="/app/billing" component={() => <ProtectedRoute><AppShell><BillingPage /></AppShell></ProtectedRoute>} />
+        <Route path="/app/settings" component={() => <ProtectedRoute><AppShell><SettingsPage /></AppShell></ProtectedRoute>} />
+        <Route path="/terms" component={() => <LegalPage />} />
+        <Route path="/privacy" component={() => <LegalPage privacy />} />
+        <Route component={HomeRoute} />
+      </Switch>
+    </ErrorBoundary>
+  );
+}
+
+function ClerkProviderWithRoutes() {
+  const [, setLocation] = useLocation();
+  return (
+    <ClerkProvider
+      publishableKey={clerkPubKey}
+      proxyUrl={clerkProxyUrl}
+      appearance={clerkAppearance}
+      signInUrl={`${basePath}/sign-in`}
+      signUpUrl={`${basePath}/sign-up`}
+      localization={{
+        signIn: { start: { title: 'Bem-vindo de volta.', subtitle: 'Entre para ver os sinais que pedem sua atenção.' } },
+        signUp: { start: { title: 'Crie seu radar.', subtitle: 'Configure em minutos. Ajuste quando seu contexto mudar.' } },
+      }}
+      routerPush={(to) => setLocation(stripBase(to))}
+      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
+    >
+      <QueryClientProvider client={queryClient}>
+        <ClerkQueryClientCacheInvalidator />
+        <TooltipProvider>
+          <Router />
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ClerkProvider>
+  );
 }
 
 function App() {
-  return <QueryClientProvider client={queryClient}><TooltipProvider><WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}><Router /></WouterRouter><Toaster /></TooltipProvider></QueryClientProvider>;
+  return (
+    <WouterRouter base={basePath}>
+      <ClerkProviderWithRoutes />
+    </WouterRouter>
+  );
 }
 
 export default App;

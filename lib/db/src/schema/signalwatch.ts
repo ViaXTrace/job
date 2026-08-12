@@ -19,6 +19,7 @@ export const signalwatchProfilesTable = pgTable("signalwatch_profiles", {
   dateFormat: text("date_format").notNull().default("dd/MM/yyyy"),
   timeFormat: text("time_format").notNull().default("24h"),
   inAppNotifications: boolean("in_app_notifications").notNull().default(true),
+  isAdmin: boolean("is_admin").notNull().default(false),
   billingState: text("billing_state").notNull().default("trial"),
   planId: text("plan_id").notNull().default("starter"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import { createClerkClient } from "@clerk/express";
 import {
   db,
   signalwatchConnectionsTable,
@@ -6,6 +7,44 @@ import {
   type SignalwatchConnection,
   type SignalwatchProfile,
 } from "@workspace/db";
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+const ADMIN_EMAILS = (process.env.SIGNALWATCH_ADMIN_EMAILS ?? "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
+async function resolveAdminStatus(userId: string): Promise<boolean> {
+  if (ADMIN_EMAILS.length === 0) return false;
+  try {
+    const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+    const user = await clerk.users.getUser(userId);
+    const email =
+      user.primaryEmailAddress?.emailAddress?.toLowerCase() ?? "";
+    return ADMIN_EMAILS.includes(email);
+  } catch {
+    return false;
+  }
+}
+// ──────────────────────────────────────────────────────────────────────────────
+
+const ADMIN_PLAN = {
+  id: "admin",
+  name: "Admin",
+  description: "Acesso ilimitado para administradores da plataforma.",
+  monthlyPriceCents: 0,
+  annualPriceCents: 0,
+  groupsLimit: 9999,
+  keywordsLimit: 9999,
+  destinationsLimit: 99,
+  historyDays: 9999,
+  features: [
+    "Grupos ilimitados",
+    "Palavras-chave ilimitadas",
+    "Histórico ilimitado",
+    "Acesso completo de administrador",
+  ],
+} as const;
 
 export const BILLING_PLANS = [
   {
@@ -46,9 +85,10 @@ export const BILLING_PLANS = [
   },
 ] as const;
 
-export type BillingPlan = (typeof BILLING_PLANS)[number];
+export type BillingPlan = (typeof BILLING_PLANS)[number] | typeof ADMIN_PLAN;
 
 export function getBillingPlan(planId: string): BillingPlan {
+  if (planId === "admin") return ADMIN_PLAN;
   return BILLING_PLANS.find((plan) => plan.id === planId) ?? BILLING_PLANS[0];
 }
 
@@ -67,10 +107,26 @@ export async function ensureWorkspace(userId: string): Promise<{
     .limit(1);
 
   if (!profile) {
+    const admin = await resolveAdminStatus(userId);
     [profile] = await db
       .insert(signalwatchProfilesTable)
-      .values({ clerkUserId: userId })
+      .values({
+        clerkUserId: userId,
+        isAdmin: admin,
+        planId: admin ? "admin" : "starter",
+        billingState: admin ? "active" : "trial",
+      })
       .returning();
+  } else if (!profile.isAdmin && ADMIN_EMAILS.length > 0) {
+    // Re-check in case admin email was added after first login
+    const admin = await resolveAdminStatus(userId);
+    if (admin) {
+      [profile] = await db
+        .update(signalwatchProfilesTable)
+        .set({ isAdmin: true, planId: "admin", billingState: "active" })
+        .where(eq(signalwatchProfilesTable.clerkUserId, userId))
+        .returning();
+    }
   }
 
   let [connection] = await db
