@@ -1,0 +1,1 @@
+- [Escopo de notificações](telegram-notification-scope.md) — o produto não terá bot no Telegram; alertas ficam exclusivamente dentro do SaaS.
