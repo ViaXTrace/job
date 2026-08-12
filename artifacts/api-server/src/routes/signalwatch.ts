@@ -531,7 +531,7 @@ router.post("/connection/qr", async (req, res): Promise<void> => {
 
   res.json(
     CreateConnectionQrResponse.parse({
-      status: "pending",
+      status: "qr_pending",
       qrData: result.dataUrl,
       expiresAt: result.expiresAt,
       message: null,

@@ -222,9 +222,13 @@ function AlertRow({ alert, onRead, onFavorite, onArchive }: { alert: Alert; onRe
 
 function Dashboard() {
   const summaryQuery = useGetDashboardSummary({ query: { queryKey: getGetDashboardSummaryQueryKey() } });
+  const { user } = useUser();
   const summary = summaryQuery.data ?? fallbackSummary;
   const health = summaryQuery.isError;
-  return <><PageHeader eyebrow="Pulso de hoje" title="Bom dia, Marina." description="Seu radar encontrou movimento. Aqui está o que merece atenção antes do café esfriar." action={<Link href="/app/alerts" className="inline-flex items-center gap-2 rounded-lg bg-[#116b68] px-4 py-2.5 text-sm font-bold text-[#f5fffb] shadow-[0_7px_18px_rgba(17,107,104,.18)] hover:bg-[#0d5754]" data-testid="link-see-all-alerts">Abrir inbox <ArrowRight size={16} /></Link>} />
+  const firstName = user?.firstName ?? user?.fullName?.split(' ')[0] ?? 'você';
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
+  return <><PageHeader eyebrow="Pulso de hoje" title={`${greeting}, ${firstName}.`} description="Seu radar está de olho. Aqui está o que merece atenção agora." action={<Link href="/app/alerts" className="inline-flex items-center gap-2 rounded-lg bg-[#116b68] px-4 py-2.5 text-sm font-bold text-[#f5fffb] shadow-[0_7px_18px_rgba(17,107,104,.18)] hover:bg-[#0d5754]" data-testid="link-see-all-alerts">Abrir inbox <ArrowRight size={16} /></Link>} />
     {health && <div className="mb-5"><ErrorState onRetry={() => summaryQuery.refetch()} label="O servidor não respondeu. Exibindo o último panorama disponível." /></div>}
     {summaryQuery.isLoading ? <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><Skeleton className="h-36" /><Skeleton className="h-36" /><Skeleton className="h-36" /><Skeleton className="h-36" /></div> : <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><Metric label="Alertas hoje" value={summary.alertsToday} note={`${summary.unreadAlerts} ainda não lidos`} icon={Inbox} /><Metric label="Regras ativas" value={summary.activeRules} note="cobrindo seus temas" icon={Zap} tone="amber" /><Metric label="Grupos monitorados" value={summary.monitoredGroups} note={`${summary.connection.availableGroups} disponíveis`} icon={Layers3} tone="blue" /><Metric label="Conexão" value={summary.connection.status === 'connected' ? 'Ativa' : 'Pendente'} note={summary.connection.connectorAvailable ? 'Telegram autorizado' : 'conector indisponível'} icon={Activity} tone={summary.connection.status === 'connected' ? 'teal' : 'amber'} /></div>}
     <div className="mt-6 grid gap-6 xl:grid-cols-[1.3fr_.7fr]"><section className="sw-card rounded-2xl p-5 lg:p-6"><div className="flex items-center justify-between"><div><h2 className="sw-display text-xl font-bold text-[#12383a]">Sinais recentes</h2><p className="mt-1 text-xs text-[#75918c]">O que cruzou suas regras nas últimas horas.</p></div><Link href="/app/alerts" className="text-xs font-bold text-[#278078] hover:underline" data-testid="link-recent-alerts">Ver todos</Link></div><div className="mt-5 space-y-2">{summary.recentAlerts.length ? summary.recentAlerts.slice(0, 4).map(a => <AlertRow key={a.id} alert={a} />) : <EmptyState icon={Inbox} title="Nenhum sinal ainda" body="Quando uma mensagem cruzar suas regras, ela aparecerá neste espaço." />}</div></section><aside className="space-y-6"><section className="sw-card rounded-2xl p-5 lg:p-6"><div className="flex items-center justify-between"><div><h2 className="sw-display text-xl font-bold text-[#12383a]">Uso do plano</h2><p className="mt-1 text-xs text-[#75918c]">{summary.planUsage.planName}</p></div><Link href="/app/billing" className="text-xs font-bold text-[#278078] hover:underline" data-testid="link-usage-billing">Detalhes</Link></div><UsageBar label="Grupos" used={summary.planUsage.groupsUsed} limit={summary.planUsage.groupsLimit} /><UsageBar label="Palavras-chave" used={summary.planUsage.keywordsUsed} limit={summary.planUsage.keywordsLimit} /></section><section className="rounded-2xl bg-[#d8f2e8] p-5 lg:p-6"><div className="flex items-center gap-2 text-[#1d746b]"><CircleDot size={16} className="sw-scan" /><span className="text-xs font-bold uppercase tracking-[.15em]">Próximo passo</span></div><h3 className="sw-display mt-4 text-xl font-bold leading-tight text-[#164f4d]">{summary.connection.connectorAvailable ? 'Revise os alertas de maior intenção.' : 'Conecte seu Telegram para começar.'}</h3><p className="mt-2 text-sm leading-6 text-[#4d7770]">{summary.connection.connectorAvailable ? 'Comece pelos sinais não lidos e ajuste uma regra se o ruído aumentou.' : 'A integração está aguardando disponibilidade do conector. Você poderá autorizar sua conta sem compartilhar sua senha.'}</p><Link href={summary.connection.connectorAvailable ? '/app/alerts' : '/app/connection'} className="mt-5 inline-flex items-center gap-2 text-sm font-extrabold text-[#176b64] hover:gap-3" data-testid="link-next-step">{summary.connection.connectorAvailable ? 'Ir para inbox' : 'Ver conexão'} <ArrowRight size={15} /></Link></section></aside></div>
@@ -303,8 +307,134 @@ function SettingsPage() {
 }
 
 function OnboardingPage() {
-  const [step, setStep] = useState(1); const [done, setDone] = useState(false);
-  return <div className="sw-noise min-h-[100dvh] bg-[#edf7f3]"><header className="flex items-center justify-between px-5 py-6 lg:px-12"><Logo /><Link href="/" className="text-sm font-bold text-[#5d817c] hover:text-[#176d66]" data-testid="link-exit-onboarding">Sair do onboarding</Link></header><main className="mx-auto max-w-4xl px-5 pb-16 pt-8 lg:pt-14"><div className="flex items-center gap-2">{[1, 2, 3].map(n => <div key={n} className="flex flex-1 items-center gap-2"><div className={`grid h-8 w-8 place-items-center rounded-full text-xs font-bold ${step >= n ? 'bg-[#116b68] text-white' : 'bg-[#dcebe6] text-[#78958f]'}`}>{step > n ? <Check size={15} /> : n}</div>{n < 3 && <div className={`h-0.5 flex-1 ${step > n ? 'bg-[#6abca1]' : 'bg-[#dcebe6]'}`} />}</div>)}</div>{done ? <div className="sw-fade-up mx-auto mt-16 max-w-xl text-center"><div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#d9f4e9] text-[#267b70]"><CheckCircle2 size={31} /></div><h1 className="sw-display mt-6 text-4xl font-bold tracking-[-.04em] text-[#12383a]">Seu radar está pronto.</h1><p className="mt-4 text-base leading-7 text-[#64817d]">Você pode ajustar grupos e regras a qualquer momento. O sinal aparece quando houver algo que realmente mereça seu tempo.</p><Link href="/app" className="mt-8 inline-flex items-center gap-2 rounded-lg bg-[#116b68] px-5 py-3 text-sm font-bold text-white" data-testid="link-finish-onboarding">Ir para visão geral <ArrowRight size={16} /></Link></div> : <div className="mx-auto mt-14 max-w-2xl"><div className="text-center"><div className="text-[11px] font-bold uppercase tracking-[.17em] text-[#398a80]">Primeiro ajuste · 0{step}</div><h1 className="sw-display mt-3 text-4xl font-bold tracking-[-.05em] text-[#12383a] lg:text-5xl">{step === 1 ? 'Comece pelo seu Telegram.' : step === 2 ? 'Escolha onde olhar.' : 'Dê nome ao que importa.'}</h1><p className="mx-auto mt-4 max-w-lg text-sm leading-7 text-[#64817d]">{step === 1 ? 'Uma sessão pessoal permite que o radar acompanhe seus grupos. Você autoriza pelo próprio Telegram, sem compartilhar senha.' : step === 2 ? 'Depois da conexão, você seleciona os grupos. Nada entra no monitoramento automaticamente.' : 'Crie sua primeira regra com os termos que indicam uma oportunidade comercial para sua equipe.'}</p></div><div className="sw-card sw-grid mt-9 rounded-2xl p-7 lg:p-10">{step === 1 && <div className="mx-auto max-w-md text-center"><div className="mx-auto grid h-20 w-20 place-items-center rounded-3xl bg-[#dff5eb] text-[#2d8377]"><QrCode size={38} /></div><div className="mt-6 rounded-xl border border-[#eddbb0] bg-[#fffaed] p-4 text-left text-sm leading-6 text-[#8b7342]"><div className="flex items-center gap-2 font-bold"><CircleAlert size={16} /> Conector ainda indisponível</div><div className="mt-1">O caminho de autorização está preparado, mas o backend ainda não disponibilizou o conector neste ambiente.</div></div><Button onClick={() => setStep(2)} className="mt-6 w-full" data-testid="button-onboarding-connection-next">Continuar mesmo assim <ArrowRight size={16} /></Button></div>}{step === 2 && <div><div className="grid gap-3">{fallbackGroups.slice(0, 3).map((g, i) => <div key={g.id} className={`flex items-center gap-3 rounded-xl border p-4 ${i < 2 ? 'border-[#8bcdb8] bg-[#e6f7ef]' : 'border-[#d4e6e0] bg-[#f8fffc]'}`}><div className="grid h-9 w-9 place-items-center rounded-lg bg-[#d2eee3] text-[#267a70]"><MessageSquare size={17} /></div><div className="flex-1"><div className="text-sm font-bold text-[#315c58]">{g.name}</div><div className="mt-1 text-xs text-[#7e9994]">{g.messageCount.toLocaleString('pt-BR')} mensagens recentes</div></div>{i < 2 ? <CheckCircle2 size={19} className="text-[#3b9c83]" /> : <span className="text-xs font-bold text-[#829c97]">depois</span>}</div>)}</div><Button onClick={() => setStep(3)} className="mt-6 w-full" data-testid="button-onboarding-groups-next">Continuar <ArrowRight size={16} /></Button></div>}{step === 3 && <div className="mx-auto max-w-md"><div className="rounded-xl border border-[#c4dfd6] bg-[#f8fffc] p-5"><Field label="Nome da primeira regra"><input defaultValue="Oportunidades comerciais" className="form-input" data-testid="input-onboarding-rule-name" /></Field><Field label="Palavras-chave" hint="separe por vírgulas"><input defaultValue="cotação, fornecedor, parceria" className="form-input" data-testid="input-onboarding-rule-keywords" /></Field><div className="mt-4 flex flex-wrap gap-1.5"><span className="rounded bg-[#e5f4ef] px-2 py-1 font-mono text-[10px] text-[#397a72]">#cotação</span><span className="rounded bg-[#e5f4ef] px-2 py-1 font-mono text-[10px] text-[#397a72]">#fornecedor</span><span className="rounded bg-[#e5f4ef] px-2 py-1 font-mono text-[10px] text-[#397a72]">#parceria</span></div></div><Button onClick={() => setDone(true)} className="mt-6 w-full" data-testid="button-complete-onboarding">Criar regra e entrar <ArrowRight size={16} /></Button></div>}</div></div>}</main></div>;
+  const { user } = useUser();
+  const [step, setStep] = useState(1);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [nameError, setNameError] = useState('');
+  const TOTAL_STEPS = 3;
+
+  async function saveName() {
+    if (!firstName.trim()) { setNameError('Informe pelo menos o primeiro nome.'); return; }
+    setSaving(true);
+    setNameError('');
+    try {
+      await user?.update({ firstName: firstName.trim(), lastName: lastName.trim() || undefined });
+      setStep(2);
+    } catch {
+      setNameError('Não foi possível salvar. Tente novamente.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="sw-noise min-h-[100dvh] bg-[#edf7f3]">
+      <header className="flex items-center justify-between px-5 py-6 lg:px-12">
+        <Logo />
+        <Link href="/app" className="text-sm font-bold text-[#5d817c] hover:text-[#176d66]" data-testid="link-exit-onboarding">Pular configuração</Link>
+      </header>
+      <main className="mx-auto max-w-4xl px-5 pb-16 pt-8 lg:pt-14">
+        {/* Progress bar */}
+        <div className="flex items-center gap-2">
+          {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map(n => (
+            <div key={n} className="flex flex-1 items-center gap-2">
+              <div className={`grid h-8 w-8 place-items-center rounded-full text-xs font-bold ${step > n ? 'bg-[#116b68] text-white' : step === n ? 'bg-[#116b68] text-white' : 'bg-[#dcebe6] text-[#78958f]'}`}>
+                {step > n ? <Check size={15} /> : n}
+              </div>
+              {n < TOTAL_STEPS && <div className={`h-0.5 flex-1 ${step > n ? 'bg-[#6abca1]' : 'bg-[#dcebe6]'}`} />}
+            </div>
+          ))}
+        </div>
+
+        {step === 1 && (
+          <div className="mx-auto mt-14 max-w-xl">
+            <div className="text-center">
+              <div className="text-[11px] font-bold uppercase tracking-[.17em] text-[#398a80]">Configure sua conta · 01</div>
+              <h1 className="sw-display mt-3 text-4xl font-bold tracking-[-.05em] text-[#12383a] lg:text-5xl">Como quer ser chamado?</h1>
+              <p className="mx-auto mt-4 max-w-lg text-sm leading-7 text-[#64817d]">Seu nome aparecerá no painel e nos alertas. Você pode alterar depois nas configurações.</p>
+            </div>
+            <div className="sw-card mt-9 rounded-2xl p-7 lg:p-10">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-[#3d6662]">Primeiro nome <span className="text-[#de765f]">*</span></label>
+                  <input
+                    value={firstName}
+                    onChange={e => { setFirstName(e.target.value); setNameError(''); }}
+                    onKeyDown={e => e.key === 'Enter' && saveName()}
+                    placeholder="Ex: João"
+                    className="form-input w-full"
+                    autoFocus
+                    data-testid="input-first-name"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold text-[#3d6662]">Sobrenome <span className="text-[#9fb8b3] font-normal">(opcional)</span></label>
+                  <input
+                    value={lastName}
+                    onChange={e => setLastName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && saveName()}
+                    placeholder="Ex: Silva"
+                    className="form-input w-full"
+                    data-testid="input-last-name"
+                  />
+                </div>
+              </div>
+              {nameError && <p className="mt-3 text-xs font-medium text-[#de765f]">{nameError}</p>}
+              <button
+                onClick={saveName}
+                disabled={saving || !firstName.trim()}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-[#116b68] px-5 py-3 text-sm font-bold text-white hover:bg-[#0d5754] disabled:opacity-50"
+                data-testid="button-save-name"
+              >
+                {saving ? 'Salvando…' : <>Continuar <ArrowRight size={16} /></>}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="mx-auto mt-14 max-w-2xl">
+            <div className="text-center">
+              <div className="text-[11px] font-bold uppercase tracking-[.17em] text-[#398a80]">Configure sua conta · 02</div>
+              <h1 className="sw-display mt-3 text-4xl font-bold tracking-[-.05em] text-[#12383a] lg:text-5xl">Conecte seu Telegram.</h1>
+              <p className="mx-auto mt-4 max-w-lg text-sm leading-7 text-[#64817d]">Uma sessão pessoal permite que o radar acompanhe seus grupos. Você autoriza pelo próprio Telegram, sem compartilhar senha.</p>
+            </div>
+            <div className="sw-card mt-9 rounded-2xl p-7 lg:p-10">
+              <div className="mx-auto max-w-md text-center">
+                <div className="mx-auto grid h-20 w-20 place-items-center rounded-3xl bg-[#dff5eb] text-[#2d8377]">
+                  <QrCode size={38} />
+                </div>
+                <p className="mt-5 text-sm leading-6 text-[#5d817c]">Você pode conectar agora na página de <strong>Conexão</strong> depois de entrar no app. O radar começa a funcionar assim que autorizar.</p>
+                <button onClick={() => setStep(3)} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-[#116b68] px-5 py-3 text-sm font-bold text-white hover:bg-[#0d5754]" data-testid="button-onboarding-skip-telegram">
+                  Entendido, entrar no app <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="sw-fade-up mx-auto mt-16 max-w-xl text-center">
+            <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#d9f4e9] text-[#267b70]">
+              <CheckCircle2 size={31} />
+            </div>
+            <h1 className="sw-display mt-6 text-4xl font-bold tracking-[-.04em] text-[#12383a]">Tudo pronto{firstName ? `, ${firstName}` : ''}.</h1>
+            <p className="mt-4 text-base leading-7 text-[#64817d]">Seu radar está configurado. Conecte o Telegram e crie regras para começar a receber sinais.</p>
+            <Link href="/app/connection" className="mt-8 inline-flex items-center gap-2 rounded-lg bg-[#116b68] px-5 py-3 text-sm font-bold text-white hover:bg-[#0d5754]" data-testid="link-finish-onboarding">
+              Conectar Telegram <ArrowRight size={16} />
+            </Link>
+            <div className="mt-4">
+              <Link href="/app" className="text-sm font-bold text-[#5d817c] hover:text-[#176d66]" data-testid="link-skip-to-dashboard">
+                Ir direto para o painel
+              </Link>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
 }
 
 
@@ -356,9 +486,14 @@ function HomeRoute() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoaded } = useUser();
+  const [location] = useLocation();
+  const needsOnboarding = isLoaded && user && !user.firstName && !location.startsWith('/onboarding');
   return (
     <>
-      <Show when="signed-in">{children}</Show>
+      <Show when="signed-in">
+        {needsOnboarding ? <WouterRedirect to="/onboarding" /> : children}
+      </Show>
       <Show when="signed-out"><WouterRedirect to="/sign-in" /></Show>
     </>
   );
