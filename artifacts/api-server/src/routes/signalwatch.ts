@@ -765,6 +765,26 @@ router.patch("/preferences", async (req, res): Promise<void> => {
   );
 });
 
+// ── Audit logging middleware ──────────────────────────────────────────────────
+// Logs every authenticated request: userId, method, route, IP, timestamp
+router.use((req, _res, next) => {
+  const uid = req.userId;
+  if (uid) {
+    const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ?? req.socket?.remoteAddress ?? "unknown";
+    console.log(
+      JSON.stringify({
+        level: "audit",
+        ts: new Date().toISOString(),
+        userId: uid,
+        method: req.method,
+        route: req.path,
+        ip,
+      }),
+    );
+  }
+  next();
+});
+
 // ── Profile name update (via Clerk Management API) ────────────────────────────
 router.post("/profile/name", requireAuth, async (req, res): Promise<void> => {
   const { firstName, lastName } = req.body as {
@@ -862,5 +882,69 @@ router.post(
     res.json({ ok: true });
   },
 );
+
+// ── Connected sessions (Clerk Management API) ─────────────────────────────────
+router.get("/profile/sessions", requireAuth, async (req, res): Promise<void> => {
+  const uid = userId(req);
+  const resp = await fetch(
+    `https://api.clerk.com/v1/sessions?user_id=${uid}&status=active&limit=20`,
+    { headers: { Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}` } },
+  );
+  if (!resp.ok) {
+    console.error("[profile/sessions] Clerk API error:", resp.status);
+    res.status(502).json({ error: "Failed to fetch sessions" });
+    return;
+  }
+  const raw = (await resp.json()) as Array<{
+    id: string;
+    last_active_at: number;
+    created_at: number;
+    latest_activity?: {
+      ip_address?: string;
+      city?: string;
+      country?: string;
+      browser_name?: string;
+      browser_version?: string;
+      is_mobile?: boolean;
+    };
+  }>;
+  res.json(
+    raw.map((s) => ({
+      id: s.id,
+      lastActiveAt: new Date(s.last_active_at * 1000).toISOString(),
+      createdAt: new Date(s.created_at * 1000).toISOString(),
+      ip: s.latest_activity?.ip_address ?? null,
+      city: s.latest_activity?.city ?? null,
+      country: s.latest_activity?.country ?? null,
+      browser: s.latest_activity?.browser_name
+        ? `${s.latest_activity.browser_name}${s.latest_activity.browser_version ? ` ${s.latest_activity.browser_version.split(".")[0]}` : ""}`
+        : null,
+      deviceType: s.latest_activity?.is_mobile ? "mobile" : "desktop",
+    })),
+  );
+});
+
+// ── Support: report a problem ─────────────────────────────────────────────────
+router.post("/support/report", requireAuth, async (req, res): Promise<void> => {
+  const { category, description } = req.body as { category?: string; description?: string };
+  if (!category || !description?.trim()) {
+    res.status(400).json({ error: "category and description are required" });
+    return;
+  }
+  const uid = userId(req);
+  const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
+    ?? req.socket?.remoteAddress ?? "unknown";
+  console.log(
+    JSON.stringify({
+      level: "support",
+      ts: new Date().toISOString(),
+      userId: uid,
+      ip,
+      category,
+      description,
+    }),
+  );
+  res.json({ ok: true });
+});
 
 export default router;

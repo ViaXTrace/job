@@ -1,12 +1,12 @@
 import React, { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import {
-  Activity, ArrowRight, Bell, Check, CheckCircle2, ChevronDown, CircleAlert, CircleDot,
+  Activity, ArrowRight, Bell, Bug, Check, CheckCircle2, ChevronDown, CircleAlert, CircleDot,
   Clock3, Copy, CreditCard, ExternalLink, Eye, EyeOff, FileText, Filter, Gauge,
-  Globe2, Inbox, KeyRound, Layers3, Link2, LockKeyhole, LogOut, Menu, MessageSquare,
-  MoreHorizontal, Pause, Pencil, Play, Plus, QrCode, RefreshCw, Search, Settings2,
-  ShieldCheck, SlidersHorizontal, Sparkles, Star, Tag, Trash2, Unplug, UsersRound,
-  X, Zap,
+  Globe2, Inbox, KeyRound, Laptop, Layers3, Link2, LockKeyhole, LogOut, MapPin, Menu,
+  MessageSquare, Monitor, MoreHorizontal, Pause, Pencil, Play, Plus, QrCode, RefreshCw,
+  Search, Send, Settings2, ShieldCheck, SlidersHorizontal, Smartphone, Sparkles, Star,
+  Tag, Trash2, Unplug, Upload, UserCircle2, UsersRound, X, Zap,
 } from 'lucide-react';
 import {
   getGetBillingStatusQueryKey, getGetConnectionStatusQueryKey, getGetDashboardSummaryQueryKey,
@@ -146,14 +146,16 @@ function relativeDate(value?: string | null) {
 function formatDay(value?: string | null) { return value ? new Date(value).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'; }
 
 function Logo({ inverse = false }: { inverse?: boolean }) {
-  return <div className="flex items-center gap-2.5" data-testid="brand-logo">
-    <div className={`relative grid h-9 w-9 place-items-center rounded-xl ${inverse ? 'bg-[#80f2d4] text-[#12383a]' : 'bg-[#116b68] text-[#e9fff8]'}`}>
-      <span className="absolute h-4 w-4 rounded-full border-2 border-current" />
-      <span className="absolute h-1.5 w-1.5 rounded-full bg-current" />
-      <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-[#edb94b]" />
+  return (
+    <div className="flex items-center gap-2.5" data-testid="brand-logo">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="36" height="36" rx="10" fill={inverse ? '#80f2d4' : '#116b68'} />
+        <polyline points="4,18 10,18 13,9 16,27 19,13 22,18 32,18" stroke={inverse ? '#12383a' : '#e9fff8'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="13" cy="9" r="2.5" fill="#edb94b" />
+      </svg>
+      <span className={`sw-display text-xl font-bold tracking-[-.04em] ${inverse ? 'text-[#e9fff8]' : 'text-[#12383a]'}`}>SignalWatch</span>
     </div>
-    <span className={`sw-display text-xl font-bold tracking-[-.04em] ${inverse ? 'text-[#e9fff8]' : 'text-[#12383a]'}`}>SignalWatch</span>
-  </div>;
+  );
 }
 
 function Button({ children, className = '', variant = 'primary', ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'ghost' | 'danger' }) {
@@ -203,7 +205,7 @@ function AppShell({ children }: { children: ReactNode }) {
       <div className="mt-4 flex items-center gap-3 border-t border-[#2a5c5b] px-2 pt-4">{user?.imageUrl ? <img src={user.imageUrl} className="h-8 w-8 rounded-full object-cover" alt="" /> : <div className="grid h-8 w-8 place-items-center rounded-full bg-[#edbd54] text-xs font-extrabold text-[#264847]">{userInitials}</div>}<div className="min-w-0"><div className="truncate text-xs font-bold text-[#effff9]">{userName}</div><div className="truncate text-[11px] text-[#86b2a8]">{userEmail}</div></div><button onClick={() => signOut({ redirectUrl: basePath || '/' })} className="ml-auto text-[#86b2a8] hover:text-white" aria-label="Sair" data-testid="button-sign-out"><LogOut size={15} /></button></div>
     </aside>
     {mobileOpen && <button className="fixed inset-0 z-30 bg-[#12383a]/40 lg:hidden" onClick={() => setMobileOpen(false)} aria-label="Fechar menu" data-testid="button-close-menu" />}
-    <div className="lg:pl-[252px]"><header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-[#d2e8e1] bg-[#edf7f3]/90 px-5 backdrop-blur lg:px-9"><div className="flex items-center gap-3"><button className="rounded-lg p-2 text-[#386a66] hover:bg-[#dcefe9] lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Abrir menu" data-testid="button-open-menu"><Menu size={20} /></button><div className="hidden text-xs font-bold text-[#6a8985] sm:block">terça-feira, 18 de fevereiro de 2025</div><div className="text-sm font-semibold text-[#12383a] sm:hidden">terça, 18 fev</div></div><div className="flex items-center gap-2.5"><Link href="/app/connection" className="hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold text-[#527b76] hover:bg-[#dcefe9] sm:flex" data-testid="link-header-connection"><span className="h-2 w-2 rounded-full bg-[#edbd54]" /> Telegram não conectado</Link><button className="relative rounded-lg p-2.5 text-[#4f7773] hover:bg-[#dcefe9]" aria-label="Notificações" data-testid="button-notifications"><Bell size={18} /><span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#de765f]" /></button>{user?.imageUrl ? <img src={user.imageUrl} className="h-8 w-8 rounded-full object-cover" alt="" /> : <div className="grid h-8 w-8 place-items-center rounded-full bg-[#d8b467] text-xs font-extrabold text-[#264847]">{userInitials}</div>}</div></header><main className="mx-auto max-w-[1440px] px-5 py-7 lg:px-9 lg:py-9">{children}</main></div>
+    <div className="lg:pl-[252px]"><header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-[#d2e8e1] bg-[#edf7f3]/90 px-5 backdrop-blur lg:px-9"><div className="flex items-center gap-3"><button className="rounded-lg p-2 text-[#386a66] hover:bg-[#dcefe9] lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Abrir menu" data-testid="button-open-menu"><Menu size={20} /></button><div className="hidden text-xs font-bold text-[#6a8985] sm:block">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div><div className="text-sm font-semibold text-[#12383a] sm:hidden">{new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' })}</div></div><div className="flex items-center gap-2.5"><Link href="/app/connection" className="hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold text-[#527b76] hover:bg-[#dcefe9] sm:flex" data-testid="link-header-connection"><span className="h-2 w-2 rounded-full bg-[#edbd54]" /> Telegram não conectado</Link><button className="relative rounded-lg p-2.5 text-[#4f7773] hover:bg-[#dcefe9]" aria-label="Notificações" data-testid="button-notifications"><Bell size={18} /><span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#de765f]" /></button>{user?.imageUrl ? <img src={user.imageUrl} className="h-8 w-8 rounded-full object-cover" alt="" /> : <div className="grid h-8 w-8 place-items-center rounded-full bg-[#d8b467] text-xs font-extrabold text-[#264847]">{userInitials}</div>}</div></header><main className="mx-auto max-w-[1440px] px-5 py-7 lg:px-9 lg:py-9">{children}</main></div>
   </div>;
 }
 
@@ -217,7 +219,54 @@ function Metric({ label, value, note, icon: Icon, tone = 'teal' }: { label: stri
 }
 
 function AlertRow({ alert, onRead, onFavorite, onArchive }: { alert: Alert; onRead?: () => void; onFavorite?: () => void; onArchive?: () => void }) {
-  return <article className={`sw-transition group relative rounded-xl border p-4 ${alert.status === 'unread' ? 'border-[#b5ded1] bg-[#fbfffd]' : 'border-[#d8e8e3] bg-[#f7fcfa]'}`} data-testid={`card-alert-${alert.id}`}><div className="flex gap-3"><div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${alert.status === 'unread' ? 'bg-[#e6b548]' : 'bg-[#c5d8d3]'}`} /><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><span className="text-xs font-extrabold text-[#347f76]">{alert.groupName}</span><span className="text-[11px] text-[#96aaa6]">· {relativeDate(alert.receivedAt)}</span>{alert.deliveryStatus === 'unavailable' && <Pill tone="amber">Entrega indisponível</Pill>}</div><p className="mt-2 text-sm leading-6 text-[#2d4f4e]">{alert.message}</p><div className="mt-3 flex flex-wrap items-center gap-1.5">{alert.matchedKeywords.map(k => <span key={k} className="rounded-md bg-[#e5f4ef] px-2 py-1 font-mono text-[10px] font-medium text-[#357c73]">#{k}</span>)}<span className="ml-1 text-[11px] text-[#819c97]">regra: {alert.ruleName}</span></div></div><div className="flex shrink-0 items-start gap-0.5 opacity-60 transition-opacity group-hover:opacity-100"><button onClick={onFavorite} className={`rounded-md p-2 hover:bg-[#e4f3ed] ${alert.favorite ? 'text-[#d29c27]' : 'text-[#73938e]'}`} aria-label="Favoritar alerta" data-testid={`button-favorite-${alert.id}`}><Star size={16} fill={alert.favorite ? 'currentColor' : 'none'} /></button><button onClick={onRead} className="rounded-md p-2 text-[#73938e] hover:bg-[#e4f3ed]" aria-label={alert.status === 'unread' ? 'Marcar como lido' : 'Marcar como não lido'} data-testid={`button-read-${alert.id}`}>{alert.status === 'unread' ? <Eye size={16} /> : <EyeOff size={16} />}</button><button onClick={onArchive} className="rounded-md p-2 text-[#73938e] hover:bg-[#e4f3ed]" aria-label="Arquivar alerta" data-testid={`button-archive-${alert.id}`}><MoreHorizontal size={16} /></button></div></div></article>;
+  return (
+    <article
+      className={`sw-transition group relative rounded-xl border p-4 ${alert.status === 'unread' ? 'border-[#b5ded1] bg-[#fbfffd]' : 'border-[#d8e8e3] bg-[#f7fcfa]'}`}
+      data-testid={`card-alert-${alert.id}`}
+    >
+      <div className="flex gap-3">
+        <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${alert.status === 'unread' ? 'bg-[#e6b548]' : 'bg-[#c5d8d3]'}`} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-extrabold text-[#347f76]">{alert.groupName}</span>
+            <span className="text-[11px] text-[#96aaa6]">· {relativeDate(alert.receivedAt)}</span>
+            {alert.deliveryStatus === 'unavailable' && <Pill tone="amber">Entrega indisponível</Pill>}
+          </div>
+          <p className="mt-2 text-sm leading-6 text-[#2d4f4e]">{alert.message}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            {alert.matchedKeywords.map(k => (
+              <span key={k} className="rounded-md bg-[#e5f4ef] px-2 py-1 font-mono text-[10px] font-medium text-[#357c73]">#{k}</span>
+            ))}
+            <span className="ml-1 text-[11px] text-[#819c97]">regra: {alert.ruleName}</span>
+          </div>
+          {/* Telegram deep link */}
+          {alert.messageLink && (
+            <a
+              href={alert.messageLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-[#c0ddd6] bg-[#edf8f4] px-2.5 py-1.5 text-[11px] font-semibold text-[#1f6e64] hover:bg-[#d8f2e8]"
+              data-testid={`link-open-telegram-${alert.id}`}
+            >
+              <ExternalLink size={11} />
+              Abrir no Telegram
+            </a>
+          )}
+        </div>
+        <div className="flex shrink-0 items-start gap-0.5 opacity-60 transition-opacity group-hover:opacity-100">
+          <button onClick={onFavorite} className={`rounded-md p-2 hover:bg-[#e4f3ed] ${alert.favorite ? 'text-[#d29c27]' : 'text-[#73938e]'}`} aria-label="Favoritar alerta" data-testid={`button-favorite-${alert.id}`}>
+            <Star size={16} fill={alert.favorite ? 'currentColor' : 'none'} />
+          </button>
+          <button onClick={onRead} className="rounded-md p-2 text-[#73938e] hover:bg-[#e4f3ed]" aria-label={alert.status === 'unread' ? 'Marcar como lido' : 'Marcar como não lido'} data-testid={`button-read-${alert.id}`}>
+            {alert.status === 'unread' ? <Eye size={16} /> : <EyeOff size={16} />}
+          </button>
+          <button onClick={onArchive} className="rounded-md p-2 text-[#73938e] hover:bg-[#e4f3ed]" aria-label="Arquivar alerta" data-testid={`button-archive-${alert.id}`}>
+            <MoreHorizontal size={16} />
+          </button>
+        </div>
+      </div>
+    </article>
+  );
 }
 
 function Dashboard() {
@@ -585,11 +634,375 @@ function BillingPage() {
   return <><PageHeader eyebrow="Plano da operação" title="Plano e cobrança" description="Mais cobertura para encontrar os sinais que pagam a conta — sem surpresas no cartão." action={<div className="flex items-center rounded-lg border border-[#c6dfd8] bg-[#f9fffc] p-1 text-xs font-bold"><button onClick={() => setCycle('monthly')} className={`rounded-md px-3 py-2 ${cycle === 'monthly' ? 'bg-[#d9f2e8] text-[#176e65]' : 'text-[#71908b]'}`} data-testid="button-cycle-monthly">Mensal</button><button onClick={() => setCycle('annual')} className={`rounded-md px-3 py-2 ${cycle === 'annual' ? 'bg-[#d9f2e8] text-[#176e65]' : 'text-[#71908b]'}`} data-testid="button-cycle-annual">Anual · 2 meses grátis</button></div>} />{current && <div className="mb-6 rounded-2xl border border-[#b9ded0] bg-[#ddf5eb] p-5"><div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><div><div className="text-[11px] font-bold uppercase tracking-[.13em] text-[#357d73]">Status atual</div><div className="mt-1 sw-display text-xl font-bold text-[#174f4b]">{current.plan.name} <span className="font-sans text-sm font-semibold text-[#518079]">· {current.state === 'awaiting_payment' ? 'pagamento pendente' : current.state === 'paid' || current.state === 'active' ? 'ativo' : current.state}</span></div></div><Pill tone={current.state === 'awaiting_payment' ? 'amber' : 'teal'}>{current.state === 'awaiting_payment' ? 'Aguardando Pix' : 'Em dia'}</Pill></div></div>}{checkoutState && <div className="mb-6 rounded-2xl border border-[#e6d2a6] bg-[#fff9eb] p-5"><div className="flex items-center gap-2 font-bold text-[#8d6822]"><Clock3 size={17} /> Pagamento Pix {checkoutState.status === 'pending' ? 'pendente' : checkoutState.status}</div><p className="mt-1 text-sm leading-6 text-[#92794b]">{checkoutState.message ?? 'O pagamento ainda não foi confirmado. Não feche esta página até finalizar.'}</p>{checkoutState.status === 'pending' && checkoutState.copyPaste && <div className="mt-4 flex flex-col gap-2 sm:flex-row"><input readOnly value={checkoutState.copyPaste} className="form-input flex-1 bg-[#fffdf7] font-mono text-xs" data-testid="input-pix-copy-paste" /><Button variant="secondary" onClick={() => navigator.clipboard?.writeText(checkoutState.copyPaste ?? '')} data-testid="button-copy-pix"><Copy size={15} /> Copiar código</Button></div>}</div>}<div className="grid gap-4 lg:grid-cols-3">{plans.map((plan, idx) => <div key={plan.id} className={`sw-card relative flex flex-col rounded-2xl p-6 ${idx === 1 ? 'border-2 border-[#59b89d] shadow-[0_16px_34px_rgba(31,117,99,.12)]' : ''}`} data-testid={`card-plan-${plan.id}`}>{idx === 1 && <div className="absolute -top-3 left-5 rounded-full bg-[#edbd54] px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-[#31514d]">Mais escolhido</div>}<div className="text-[11px] font-bold uppercase tracking-[.15em] text-[#38877d]">{plan.name}</div><h2 className="sw-display mt-2 text-2xl font-bold text-[#12383a]">{plan.description}</h2><div className="mt-5"><span className="sw-display text-4xl font-bold tracking-[-.06em] text-[#12383a]">{money(cycle === 'monthly' ? plan.monthlyPriceCents : Math.round(plan.annualPriceCents / 12))}</span><span className="text-xs text-[#79948f]"> / mês</span></div><div className="mt-5 space-y-3 border-t border-[#e0eee9] pt-5 text-sm text-[#567772]">{(plan.features ?? []).map(feature => <div key={feature} className="flex items-center gap-2"><CheckCircle2 size={15} className="text-[#46a98f]" />{feature}</div>)}</div><Button onClick={() => startCheckout(plan.id)} disabled={checkout.isPending || plan.id === current?.plan.id} variant={idx === 1 ? 'primary' : 'secondary'} className="mt-7 w-full" data-testid={`button-select-plan-${plan.id}`}>{plan.id === current?.plan.id ? 'Plano atual' : selected === plan.id && checkout.isPending ? 'Gerando Pix…' : 'Escolher plano'}</Button></div>)}</div><div className="mt-6 text-center text-xs text-[#78928e]">Pagamento processado por Mercado Pago. O plano só muda após confirmação do webhook.</div></>;
 }
 
+type SessionInfo = { id: string; lastActiveAt: string; createdAt: string; ip: string | null; city: string | null; country: string | null; browser: string | null; deviceType: 'mobile' | 'desktop' };
+
 function SettingsPage() {
-  const query = useGetPreferences({ query: { queryKey: getGetPreferencesQueryKey() } }); const initial: UserPreference = query.data ?? { language: 'pt-BR', theme: 'light', timezone: 'America/Sao_Paulo', dateFormat: 'dd/MM/yyyy', timeFormat: '24h', inAppNotifications: true }; const [form, setForm] = useState<UserPreference>(initial); const [dirty, setDirty] = useState(false); const update = useUpdatePreferences(); const qc = useQueryClient();
+  const [tab, setTab] = useState<'preferences' | 'profile' | 'devices' | 'support'>('preferences');
+
+  // ── Preferences ──────────────────────────────────────────────────────────
+  const query = useGetPreferences({ query: { queryKey: getGetPreferencesQueryKey() } });
+  const initial: UserPreference = query.data ?? { language: 'pt-BR', theme: 'light', timezone: 'America/Sao_Paulo', dateFormat: 'dd/MM/yyyy', timeFormat: '24h', inAppNotifications: true };
+  const [form, setForm] = useState<UserPreference>(initial);
+  const [dirty, setDirty] = useState(false);
+  const update = useUpdatePreferences();
+  const qc = useQueryClient();
   const set = <K extends keyof UserPreference>(key: K, value: UserPreference[K]) => { setForm(prev => ({ ...prev, [key]: value })); setDirty(true); };
   const save = () => update.mutate({ data: form }, { onSuccess: result => { setForm(result); setDirty(false); qc.invalidateQueries({ queryKey: getGetPreferencesQueryKey() }); toast({ title: 'Preferências salvas.' }); }, onError: () => toast({ title: 'Não foi possível salvar preferências.', variant: 'destructive' }) });
-  return <><PageHeader eyebrow="Seu espaço de trabalho" title="Preferências" description="Ajuste o SignalWatch ao jeito que sua operação acompanha o mercado." action={<Button onClick={save} disabled={!dirty || update.isPending} data-testid="button-save-preferences">{update.isPending ? 'Salvando…' : 'Salvar alterações'}</Button>} /><div className="grid gap-6 xl:grid-cols-[1.2fr_.8fr]"><section className="sw-card rounded-2xl p-6 lg:p-8"><div className="flex items-center gap-3 border-b border-[#e0eee9] pb-5"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[#e1f3ed] text-[#2d7d73]"><Globe2 size={19} /></div><div><h2 className="sw-display text-xl font-bold text-[#12383a]">Idioma e região</h2><p className="mt-1 text-xs text-[#75918c]">Como datas e rótulos aparecem na sua conta.</p></div></div><div className="mt-6 grid gap-5 sm:grid-cols-2"><Field label="Idioma"><select value={form.language} onChange={e => set('language', e.target.value as UserPreference['language'])} className="form-input" data-testid="select-language"><option value="pt-BR">Português (Brasil)</option><option value="en">English</option></select></Field><Field label="Fuso horário"><select value={form.timezone} onChange={e => set('timezone', e.target.value)} className="form-input" data-testid="select-timezone"><option value="America/Sao_Paulo">Brasília (GMT−3)</option><option value="America/Manaus">Manaus (GMT−4)</option><option value="America/Belem">Belém (GMT−3)</option></select></Field><Field label="Formato de data"><select value={form.dateFormat} onChange={e => set('dateFormat', e.target.value)} className="form-input" data-testid="select-date-format"><option value="dd/MM/yyyy">18/02/2025</option><option value="MM/dd/yyyy">02/18/2025</option></select></Field><Field label="Formato de hora"><select value={form.timeFormat} onChange={e => set('timeFormat', e.target.value)} className="form-input" data-testid="select-time-format"><option value="24h">24 horas · 14:30</option><option value="12h">12 horas · 2:30 PM</option></select></Field></div><div className="mt-9 flex items-center gap-3 border-t border-[#e0eee9] pt-6"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[#fff0d0] text-[#a3751d]"><Sparkles size={18} /></div><div className="flex-1"><div className="text-sm font-bold text-[#355d59]">Notificações no app</div><div className="mt-1 text-xs text-[#78938e]">Mostre avisos quando uma regra encontrar um sinal.</div></div><button onClick={() => set('inAppNotifications', !form.inAppNotifications)} className={`relative h-6 w-11 rounded-full ${form.inAppNotifications ? 'bg-[#2d9a84]' : 'bg-[#b9d2cb]'}`} aria-label="Alternar notificações" data-testid="button-toggle-notifications"><span className={`absolute top-1 h-4 w-4 rounded-full bg-[#f8fffc] shadow-sm transition-transform ${form.inAppNotifications ? 'translate-x-6' : 'translate-x-1'}`} /></button></div></section><aside className="space-y-5"><section className="sw-card rounded-2xl p-6"><div className="flex items-center gap-2 text-[#2d7c73]"><KeyRound size={17} /><h2 className="font-bold">Conta e segurança</h2></div><div className="mt-5 divide-y divide-[#e1eee9] text-sm"><button className="flex w-full items-center justify-between py-3 text-left font-semibold text-[#4d706b] hover:text-[#1c6d66]" data-testid="button-manage-account">Gerenciar conta <ArrowRight size={15} /></button><button className="flex w-full items-center justify-between py-3 text-left font-semibold text-[#4d706b] hover:text-[#1c6d66]" data-testid="button-change-password">Alterar senha <ArrowRight size={15} /></button><button className="flex w-full items-center justify-between py-3 text-left font-semibold text-[#a75c51] hover:text-[#843f35]" data-testid="button-delete-account">Solicitar exclusão <ArrowRight size={15} /></button></div></section><section className="rounded-2xl bg-[#12383a] p-6 text-[#d9f1eb]"><div className="flex items-center gap-2 text-[#80e0c0]"><ShieldCheck size={17} /><span className="text-xs font-bold uppercase tracking-[.14em]">Dados sob controle</span></div><p className="mt-4 text-sm leading-6 text-[#a8cbc1]">Você decide quais grupos entram no radar. A qualquer momento, desconecte sua sessão e remova o histórico.</p><Link href="/privacy" className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-[#80e0c0] hover:text-white" data-testid="link-privacy-settings">Ler política de privacidade <ArrowRight size={14} /></Link></section></aside></div></>;
+
+  // ── Profile ───────────────────────────────────────────────────────────────
+  const { user } = useUser();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [newFirstName, setNewFirstName] = useState(user?.firstName ?? '');
+  const [newLastName, setNewLastName] = useState(user?.lastName ?? '');
+  const [savingName, setSavingName] = useState(false);
+
+  async function handlePhotoUpload(file: File) {
+    setUploading(true);
+    try {
+      await user?.setProfileImage({ file });
+      await user?.reload();
+      toast({ title: 'Foto de perfil atualizada.' });
+    } catch {
+      toast({ title: 'Não foi possível atualizar a foto.', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function saveName() {
+    if (!newFirstName.trim()) return;
+    setSavingName(true);
+    try {
+      const resp = await fetch(`${basePath}/api/profile/name`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ firstName: newFirstName.trim(), lastName: newLastName.trim() }),
+      });
+      if (!resp.ok) throw new Error();
+      await user?.reload();
+      setEditingName(false);
+      toast({ title: 'Nome atualizado com sucesso.' });
+    } catch {
+      toast({ title: 'Não foi possível atualizar o nome.', variant: 'destructive' });
+    } finally {
+      setSavingName(false);
+    }
+  }
+
+  // ── Devices ───────────────────────────────────────────────────────────────
+  const [sessions, setSessions] = useState<SessionInfo[] | null>(null);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+
+  useEffect(() => {
+    if (tab !== 'devices' || sessions !== null) return;
+    setSessionsLoading(true);
+    fetch(`${basePath}/api/profile/sessions`, { credentials: 'same-origin' })
+      .then(r => r.ok ? r.json() as Promise<SessionInfo[]> : [])
+      .then(data => setSessions(data))
+      .catch(() => setSessions([]))
+      .finally(() => setSessionsLoading(false));
+  }, [tab, sessions]);
+
+  // ── Support ───────────────────────────────────────────────────────────────
+  const [reportCategory, setReportCategory] = useState('');
+  const [reportDesc, setReportDesc] = useState('');
+  const [reportSending, setReportSending] = useState(false);
+
+  async function sendReport() {
+    if (!reportDesc.trim() || !reportCategory) return;
+    setReportSending(true);
+    try {
+      await fetch(`${basePath}/api/support/report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ category: reportCategory, description: reportDesc }),
+      });
+      setReportDesc('');
+      setReportCategory('');
+      toast({ title: 'Relatório enviado.', description: 'Nossa equipe analisará em breve.' });
+    } catch {
+      toast({ title: 'Não foi possível enviar o relatório.', variant: 'destructive' });
+    } finally {
+      setReportSending(false);
+    }
+  }
+
+  const TABS: { id: typeof tab; label: string; icon: typeof Settings2 }[] = [
+    { id: 'preferences', label: 'Preferências', icon: Settings2 },
+    { id: 'profile', label: 'Perfil', icon: UserCircle2 },
+    { id: 'devices', label: 'Dispositivos', icon: Monitor },
+    { id: 'support', label: 'Suporte', icon: Bug },
+  ];
+
+  return (
+    <>
+      <PageHeader eyebrow="Seu espaço de trabalho" title="Configurações" description="Controle de conta, segurança, privacidade e preferências da operação." />
+
+      {/* Tab bar */}
+      <div className="mb-7 flex gap-0 overflow-x-auto border-b border-[#d4e8e1]">
+        {TABS.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`flex shrink-0 items-center gap-2 border-b-2 px-5 py-3 text-sm font-semibold transition-colors ${tab === t.id ? 'border-[#116b68] text-[#116b68]' : 'border-transparent text-[#668682] hover:text-[#12383a]'}`}
+            data-testid={`tab-settings-${t.id}`}
+          >
+            <t.icon size={15} />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Tab: Preferências ─────────────────────────────────────────────── */}
+      {tab === 'preferences' && (
+        <div className="grid gap-6 xl:grid-cols-[1.2fr_.8fr]">
+          <section className="sw-card rounded-2xl p-6 lg:p-8">
+            <div className="flex items-center gap-3 border-b border-[#e0eee9] pb-5">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#e1f3ed] text-[#2d7d73]"><Globe2 size={19} /></div>
+              <div><h2 className="sw-display text-xl font-bold text-[#12383a]">Idioma e região</h2><p className="mt-1 text-xs text-[#75918c]">Como datas e rótulos aparecem na sua conta.</p></div>
+            </div>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <Field label="Idioma"><select value={form.language} onChange={e => set('language', e.target.value as UserPreference['language'])} className="form-input" data-testid="select-language"><option value="pt-BR">Português (Brasil)</option><option value="en">English</option></select></Field>
+              <Field label="Fuso horário"><select value={form.timezone} onChange={e => set('timezone', e.target.value)} className="form-input" data-testid="select-timezone"><option value="America/Sao_Paulo">Brasília (GMT−3)</option><option value="America/Manaus">Manaus (GMT−4)</option><option value="America/Belem">Belém (GMT−3)</option></select></Field>
+              <Field label="Formato de data"><select value={form.dateFormat} onChange={e => set('dateFormat', e.target.value)} className="form-input" data-testid="select-date-format"><option value="dd/MM/yyyy">12/08/2026</option><option value="MM/dd/yyyy">08/12/2026</option></select></Field>
+              <Field label="Formato de hora"><select value={form.timeFormat} onChange={e => set('timeFormat', e.target.value)} className="form-input" data-testid="select-time-format"><option value="24h">24 horas · 14:30</option><option value="12h">12 horas · 2:30 PM</option></select></Field>
+            </div>
+            <div className="mt-9 flex items-center gap-3 border-t border-[#e0eee9] pt-6">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#fff0d0] text-[#a3751d]"><Sparkles size={18} /></div>
+              <div className="flex-1">
+                <div className="text-sm font-bold text-[#355d59]">Notificações no app</div>
+                <div className="mt-1 text-xs text-[#78938e]">Mostre avisos quando uma regra encontrar um sinal.</div>
+              </div>
+              <button onClick={() => set('inAppNotifications', !form.inAppNotifications)} className={`relative h-6 w-11 rounded-full transition-colors ${form.inAppNotifications ? 'bg-[#2d9a84]' : 'bg-[#b9d2cb]'}`} aria-label="Alternar notificações" data-testid="button-toggle-notifications">
+                <span className={`absolute top-1 h-4 w-4 rounded-full bg-[#f8fffc] shadow-sm transition-transform ${form.inAppNotifications ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <Button onClick={save} disabled={!dirty || update.isPending} data-testid="button-save-preferences">{update.isPending ? 'Salvando…' : 'Salvar alterações'}</Button>
+            </div>
+          </section>
+
+          <aside className="space-y-5">
+            <section className="sw-card rounded-2xl p-6">
+              <div className="flex items-center gap-2 text-[#2d7c73]"><KeyRound size={17} /><h2 className="font-bold">Conta e segurança</h2></div>
+              <div className="mt-5 divide-y divide-[#e1eee9] text-sm">
+                <button className="flex w-full items-center justify-between py-3 text-left font-semibold text-[#4d706b] hover:text-[#1c6d66]" data-testid="button-manage-account">Gerenciar conta <ArrowRight size={15} /></button>
+                <button className="flex w-full items-center justify-between py-3 text-left font-semibold text-[#4d706b] hover:text-[#1c6d66]" data-testid="button-change-password">Alterar senha <ArrowRight size={15} /></button>
+                <button className="flex w-full items-center justify-between py-3 text-left font-semibold text-[#a75c51] hover:text-[#843f35]" data-testid="button-delete-account">Solicitar exclusão <ArrowRight size={15} /></button>
+              </div>
+            </section>
+            <section className="rounded-2xl bg-[#12383a] p-6 text-[#d9f1eb]">
+              <div className="flex items-center gap-2 text-[#80e0c0]"><ShieldCheck size={17} /><span className="text-xs font-bold uppercase tracking-[.14em]">Dados sob controle</span></div>
+              <p className="mt-4 text-sm leading-6 text-[#a8cbc1]">Você decide quais grupos entram no radar. A qualquer momento, desconecte sua sessão e remova o histórico.</p>
+              <Link href="/privacy" className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-[#80e0c0] hover:text-white" data-testid="link-privacy-settings">Ler política de privacidade <ArrowRight size={14} /></Link>
+            </section>
+          </aside>
+        </div>
+      )}
+
+      {/* ── Tab: Perfil ───────────────────────────────────────────────────── */}
+      {tab === 'profile' && (
+        <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          {/* Avatar */}
+          <section className="sw-card rounded-2xl p-6 lg:p-8">
+            <div className="flex items-center gap-3 border-b border-[#e0eee9] pb-5">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#e1f3ed] text-[#2d7d73]"><UserCircle2 size={19} /></div>
+              <div><h2 className="sw-display text-xl font-bold text-[#12383a]">Foto de perfil</h2><p className="mt-1 text-xs text-[#75918c]">Aparece no topo do painel e em notificações.</p></div>
+            </div>
+            <div className="mt-6 flex flex-col items-center gap-5">
+              <div className="relative">
+                {user?.imageUrl
+                  ? <img src={user.imageUrl} alt="Avatar" className="h-24 w-24 rounded-full object-cover ring-4 ring-[#ddf4eb]" />
+                  : <div className="grid h-24 w-24 place-items-center rounded-full bg-[#edbd54] text-2xl font-extrabold text-[#264847]">{(user?.firstName?.[0] ?? user?.fullName?.[0] ?? '?').toUpperCase()}</div>
+                }
+                {uploading && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+                    <RefreshCw size={18} className="animate-spin text-white" />
+                  </div>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f); }}
+                data-testid="input-photo-upload"
+              />
+              <Button
+                variant="secondary"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full"
+                data-testid="button-upload-photo"
+              >
+                <Upload size={15} /> {uploading ? 'Enviando…' : 'Alterar foto'}
+              </Button>
+              <p className="text-center text-[11px] text-[#89a49f]">PNG, JPEG ou WebP · máx. 10 MB</p>
+            </div>
+          </section>
+
+          {/* Name */}
+          <section className="sw-card rounded-2xl p-6 lg:p-8">
+            <div className="flex items-center gap-3 border-b border-[#e0eee9] pb-5">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#e1f3ed] text-[#2d7d73]"><Pencil size={17} /></div>
+              <div><h2 className="sw-display text-xl font-bold text-[#12383a]">Nome de exibição</h2><p className="mt-1 text-xs text-[#75918c]">Como você aparece no painel e nos alertas.</p></div>
+            </div>
+            <div className="mt-6 space-y-4">
+              <div className="rounded-xl border border-[#d4e8e1] bg-[#f5fbf8] p-4">
+                <div className="text-xs text-[#7a9892]">Nome atual</div>
+                <div className="mt-1 text-sm font-bold text-[#163b3a]">{user?.fullName ?? user?.firstName ?? '—'}</div>
+                <div className="mt-0.5 text-xs text-[#8aaca5]">{user?.primaryEmailAddress?.emailAddress}</div>
+              </div>
+              {!editingName ? (
+                <Button variant="secondary" onClick={() => { setNewFirstName(user?.firstName ?? ''); setNewLastName(user?.lastName ?? ''); setEditingName(true); }} className="w-full" data-testid="button-edit-name">
+                  <Pencil size={15} /> Editar nome
+                </Button>
+              ) : (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Primeiro nome">
+                      <input value={newFirstName} onChange={e => setNewFirstName(e.target.value)} className="form-input" placeholder="Ex: João" data-testid="input-first-name" />
+                    </Field>
+                    <Field label="Sobrenome">
+                      <input value={newLastName} onChange={e => setNewLastName(e.target.value)} className="form-input" placeholder="Ex: Silva" data-testid="input-last-name" />
+                    </Field>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" onClick={() => setEditingName(false)} className="flex-1" data-testid="button-cancel-name">Cancelar</Button>
+                    <Button onClick={saveName} disabled={savingName || !newFirstName.trim()} className="flex-1" data-testid="button-save-name">
+                      {savingName ? 'Salvando…' : 'Salvar nome'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* ── Tab: Dispositivos ─────────────────────────────────────────────── */}
+      {tab === 'devices' && (
+        <section className="sw-card rounded-2xl p-6 lg:p-8">
+          <div className="mb-6 flex items-center gap-3 border-b border-[#e0eee9] pb-5">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#e1f3ed] text-[#2d7d73]"><Monitor size={19} /></div>
+            <div>
+              <h2 className="sw-display text-xl font-bold text-[#12383a]">Sessões ativas</h2>
+              <p className="mt-1 text-xs text-[#75918c]">Dispositivos com acesso à sua conta agora. Revogue sessões suspeitas.</p>
+            </div>
+            <Button variant="secondary" onClick={() => setSessions(null)} className="ml-auto" data-testid="button-refresh-sessions">
+              <RefreshCw size={15} className={sessionsLoading ? 'animate-spin' : ''} /> Atualizar
+            </Button>
+          </div>
+
+          {sessionsLoading ? (
+            <div className="space-y-3">{[1, 2].map(i => <Skeleton key={i} className="h-20" />)}</div>
+          ) : !sessions || sessions.length === 0 ? (
+            <EmptyState icon={Monitor} title="Nenhuma sessão encontrada" body="Não foi possível carregar as sessões ativas neste momento." />
+          ) : (
+            <div className="space-y-3">
+              {sessions.map((s, idx) => (
+                <div key={s.id} className={`rounded-xl border p-4 ${idx === 0 ? 'border-[#b5ded1] bg-[#f5fff9]' : 'border-[#d8e8e3] bg-[#f9fcfb]'}`}>
+                  <div className="flex items-start gap-3">
+                    <div className="grid h-9 w-9 place-items-center rounded-lg bg-[#e0f4eb] text-[#2d7d73]">
+                      {s.deviceType === 'mobile' ? <Smartphone size={16} /> : <Laptop size={16} />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-bold text-[#163b3a]">{s.browser ?? (s.deviceType === 'mobile' ? 'Dispositivo móvel' : 'Navegador desktop')}</span>
+                        {idx === 0 && <span className="rounded-full bg-[#ddf6eb] px-2 py-0.5 text-[10px] font-bold text-[#126b5e]">Sessão atual</span>}
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#6a8c86]">
+                        {s.ip && <span className="flex items-center gap-1"><MapPin size={10} /> {s.ip}</span>}
+                        {s.city && <span>{s.city}{s.country ? `, ${s.country}` : ''}</span>}
+                        <span>Último acesso: {formatDay(s.lastActiveAt)}</span>
+                        <span>Criada em: {formatDay(s.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6 rounded-xl border border-[#eed9aa] bg-[#fffaed] p-4 text-sm">
+            <div className="flex items-center gap-2 font-bold text-[#916b24]"><ShieldCheck size={15} /> Sessões isoladas por conta</div>
+            <p className="mt-1 leading-6 text-[#8e7746]">Cada sessão é criptografada com AES-256-GCM e vinculada exclusivamente à sua conta. Para revogar uma sessão, desconecte sua sessão na página de Conexão.</p>
+          </div>
+        </section>
+      )}
+
+      {/* ── Tab: Suporte ──────────────────────────────────────────────────── */}
+      {tab === 'support' && (
+        <div className="grid gap-6 xl:grid-cols-[1.2fr_.8fr]">
+          <section className="sw-card rounded-2xl p-6 lg:p-8">
+            <div className="flex items-center gap-3 border-b border-[#e0eee9] pb-5">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#ffe5df] text-[#a84032]"><Bug size={17} /></div>
+              <div><h2 className="sw-display text-xl font-bold text-[#12383a]">Relatar um problema</h2><p className="mt-1 text-xs text-[#75918c]">Descreva o que aconteceu. Nossa equipe analisa todos os relatórios.</p></div>
+            </div>
+            <div className="mt-6 space-y-4">
+              <Field label="Categoria">
+                <select value={reportCategory} onChange={e => setReportCategory(e.target.value)} className="form-input" data-testid="select-report-category">
+                  <option value="">Selecione uma categoria…</option>
+                  <option value="bug">Bug ou comportamento inesperado</option>
+                  <option value="performance">Lentidão ou instabilidade</option>
+                  <option value="telegram">Problema com conexão Telegram</option>
+                  <option value="alerts">Alertas não chegando</option>
+                  <option value="billing">Cobrança ou plano</option>
+                  <option value="other">Outro</option>
+                </select>
+              </Field>
+              <Field label="Descrição detalhada">
+                <textarea
+                  value={reportDesc}
+                  onChange={e => setReportDesc(e.target.value)}
+                  rows={5}
+                  placeholder="Descreva o problema com o máximo de detalhes. O que aconteceu? Quando? Em qual parte da plataforma?"
+                  className="form-input resize-none"
+                  data-testid="textarea-report-description"
+                />
+              </Field>
+              <Button
+                onClick={sendReport}
+                disabled={reportSending || !reportDesc.trim() || !reportCategory}
+                className="w-full"
+                data-testid="button-send-report"
+              >
+                <Send size={15} /> {reportSending ? 'Enviando…' : 'Enviar relatório'}
+              </Button>
+            </div>
+          </section>
+
+          <aside className="space-y-4">
+            <section className="sw-card rounded-2xl p-6">
+              <div className="flex items-center gap-2 text-[#2d7c73]"><FileText size={17} /><h2 className="font-bold">Documentação</h2></div>
+              <div className="mt-5 divide-y divide-[#e1eee9] text-sm">
+                {[
+                  { label: 'Política de privacidade', href: '/privacy' },
+                  { label: 'Termos de uso', href: '/terms' },
+                  { label: 'Como funciona o monitoramento', href: '/privacy' },
+                  { label: 'Conformidade LGPD', href: '/privacy' },
+                ].map(({ label, href }) => (
+                  <Link key={label} href={href} className="flex items-center justify-between py-3 text-[#4d706b] hover:text-[#1c6d66]">
+                    {label} <ArrowRight size={14} />
+                  </Link>
+                ))}
+              </div>
+            </section>
+            <section className="rounded-2xl bg-[#12383a] p-5 text-[#d9f1eb]">
+              <div className="text-xs font-bold uppercase tracking-[.14em] text-[#80e0c0]">Tempo médio de resposta</div>
+              <div className="mt-3 text-2xl font-bold text-white sw-display">48 horas</div>
+              <p className="mt-2 text-sm leading-6 text-[#a8cbc1]">Todos os relatórios são analisados pela equipe técnica e respondidos por e-mail.</p>
+            </section>
+          </aside>
+        </div>
+      )}
+    </>
+  );
 }
 
 function OnboardingPage() {

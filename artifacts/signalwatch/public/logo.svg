@@ -1,6 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
-  <rect width="36" height="36" rx="8" fill="#116b68"/>
-  <circle cx="18" cy="18" r="8" stroke="#e9fff8" stroke-width="2" fill="none"/>
-  <circle cx="18" cy="18" r="3" fill="#e9fff8"/>
-  <circle cx="27" cy="9" r="3" fill="#edb94b"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
+  <!-- Background -->
+  <rect width="36" height="36" rx="10" fill="#116b68"/>
+  <!-- Waveform pulse — represents signal detection -->
+  <polyline
+    points="4,18 10,18 13,9 16,27 19,13 22,18 32,18"
+    stroke="#e9fff8"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Gold accent at the peak — the detected signal -->
+  <circle cx="13" cy="9" r="2.5" fill="#edb94b"/>
 </svg>
