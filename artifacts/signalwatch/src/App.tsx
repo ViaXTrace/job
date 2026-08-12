@@ -120,6 +120,7 @@ const clerkAppearance = {
     logoBox: 'mb-2',
     logoImage: 'h-12 w-12',
     socialButtonsBlockButton: 'border border-border bg-card hover:bg-accent/40',
+    badge: '!hidden',
     formButtonPrimary: 'bg-[#e8531a] hover:bg-[#d44517] text-white font-bold',
     formFieldInput: 'border-border bg-card text-foreground focus:border-[#e8531a]',
     footerAction: 'bg-muted',
@@ -224,9 +225,84 @@ const utilityItems = [
   { href: '/app/settings', label: 'Preferências', icon: Settings2 },
 ];
 
+function NotificationPanel({ alerts, unreadCount, onClose }: { alerts: Alert[]; unreadCount: number; onClose: () => void }) {
+  const [, setLocation] = useLocation();
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) onClose();
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [onClose]);
+
+  const recent = alerts.slice(0, 5);
+
+  return (
+    <div
+      ref={panelRef}
+      className="absolute right-0 top-full z-50 mt-2 w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-card shadow-xl"
+    >
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-bold text-foreground">Notificações</span>
+          {unreadCount > 0 && (
+            <span className="rounded-full bg-[#e8531a] px-1.5 py-0.5 text-[10px] font-extrabold text-white">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={onClose}
+          className="rounded-md p-1 text-muted-foreground hover:bg-accent"
+          aria-label="Fechar notificações"
+        >
+          <X size={14} />
+        </button>
+      </div>
+      <div className="max-h-[360px] overflow-y-auto">
+        {recent.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+            <Bell size={28} className="text-muted-foreground/40" />
+            <p className="text-xs text-muted-foreground">Nenhuma notificação pendente.</p>
+          </div>
+        ) : (
+          recent.map(alert => (
+            <div
+              key={alert.id}
+              className={`border-b border-border px-4 py-3 last:border-0 ${alert.status === 'unread' ? 'bg-[#fff8f6] dark:bg-card' : ''}`}
+            >
+              <div className="flex items-start gap-2.5">
+                <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${alert.status === 'unread' ? 'bg-[#e8531a]' : 'bg-transparent'}`} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-[11px] font-bold text-[#d44517]">{alert.groupName}</span>
+                    <span className="shrink-0 text-[10px] text-muted-foreground">· {relativeDate(alert.receivedAt)}</span>
+                  </div>
+                  <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-foreground">{alert.message}</p>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      <div className="border-t border-border px-4 py-3">
+        <button
+          onClick={() => { setLocation('/app/alerts'); onClose(); }}
+          className="w-full rounded-lg bg-[#e8531a] py-2 text-xs font-bold text-white hover:bg-[#d44517]"
+        >
+          Ver todos os alertas
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AppShell({ children }: { children: ReactNode }) {
   const [location, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const { user } = useUser();
   const { signOut } = useClerk();
   const userInitials = initials(user?.fullName ?? user?.firstName ?? '');
@@ -236,6 +312,7 @@ function AppShell({ children }: { children: ReactNode }) {
   // Real unread count — drives sidebar badge and header bell dot
   const summaryQuery = useGetDashboardSummary({ query: { queryKey: getGetDashboardSummaryQueryKey(), staleTime: 30_000 } });
   const unreadCount = summaryQuery.data?.unreadAlerts ?? 0;
+  const recentAlerts = summaryQuery.data?.recentAlerts ?? fallbackAlerts;
 
   const { theme, toggle } = useTheme();
   return (
@@ -322,11 +399,25 @@ function AppShell({ children }: { children: ReactNode }) {
             <Link href="/app/connection" className="hidden items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold text-muted-foreground hover:bg-accent sm:flex" data-testid="link-header-connection">
               <span className="h-2 w-2 rounded-full bg-[#e8531a]" /> Telegram não conectado
             </Link>
-            {/* Bell — red dot only when there are real unread alerts */}
-            <button className="relative rounded-lg p-2.5 text-muted-foreground hover:bg-accent" aria-label="Notificações" data-testid="button-notifications">
-              <Bell size={18} />
-              {unreadCount > 0 && <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#de765f]" />}
-            </button>
+            {/* Bell — opens notification panel */}
+            <div className="relative">
+              <button
+                className="relative rounded-lg p-2.5 text-muted-foreground hover:bg-accent"
+                aria-label="Notificações"
+                data-testid="button-notifications"
+                onClick={() => setNotifOpen(o => !o)}
+              >
+                <Bell size={18} />
+                {unreadCount > 0 && <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#de765f]" />}
+              </button>
+              {notifOpen && (
+                <NotificationPanel
+                  alerts={recentAlerts}
+                  unreadCount={unreadCount}
+                  onClose={() => setNotifOpen(false)}
+                />
+              )}
+            </div>
             {user?.imageUrl
               ? <img src={user.imageUrl} className="h-8 w-8 rounded-full object-cover" alt="" />
               : <div className="grid h-8 w-8 place-items-center rounded-full bg-[#e8531a] text-xs font-extrabold text-foreground">{userInitials}</div>
