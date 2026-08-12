@@ -1390,12 +1390,60 @@ function ClerkQueryClientCacheInvalidator() {
   return null;
 }
 
+const KEEP_KEY = 'vx-keep-signed-in';
+
 function SignInPage() {
+  const [keep, setKeep] = useState(() => localStorage.getItem(KEEP_KEY) !== 'false');
+
+  function toggle() {
+    const next = !keep;
+    setKeep(next);
+    localStorage.setItem(KEEP_KEY, next ? 'true' : 'false');
+  }
+
   return (
-    <div className="sw-noise flex min-h-[100dvh] items-center justify-center bg-[#0f0f0f] px-4">
+    <div className="sw-noise flex min-h-[100dvh] flex-col items-center justify-center gap-4 bg-[#0f0f0f] px-4">
       <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+
+      {/* "Manter conectado" toggle — shown below the Clerk card */}
+      <button
+        onClick={toggle}
+        className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm text-[#9a9490] transition-colors hover:text-[#e8e5e0]"
+        aria-pressed={keep}
+        data-testid="button-keep-signed-in"
+      >
+        {/* track */}
+        <span className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors ${keep ? 'bg-[#e8531a]' : 'bg-[#3a3632]'}`}>
+          {/* thumb */}
+          <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${keep ? 'translate-x-4' : 'translate-x-0.5'}`} />
+        </span>
+        Manter conectado
+      </button>
     </div>
   );
+}
+
+/** Enforces the "keep signed in" preference on every cold app load. */
+function SessionGuard() {
+  const { signOut, session } = useClerk();
+
+  useEffect(() => {
+    if (!session) return; // not signed in — nothing to do
+
+    const keep = localStorage.getItem(KEEP_KEY) !== 'false';
+    const tabAlive = sessionStorage.getItem('vx-tab-alive');
+
+    if (!keep && !tabAlive) {
+      // New browser window opened and user chose not to stay signed in
+      signOut();
+      return;
+    }
+
+    // Mark this tab as alive so refreshes don't trigger sign-out
+    sessionStorage.setItem('vx-tab-alive', '1');
+  }, [session, signOut]);
+
+  return null;
 }
 
 function SignUpPage() {
@@ -1470,6 +1518,7 @@ function ClerkProviderWithRoutes() {
     >
       <QueryClientProvider client={queryClient}>
         <ClerkQueryClientCacheInvalidator />
+        <SessionGuard />
         <TooltipProvider>
           <Router />
           <Toaster />
