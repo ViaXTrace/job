@@ -1,6 +1,6 @@
 ---
-name: SignalWatch implementation state
-description: Tracks what has been built and what remains for the SignalWatch SaaS.
+name: ViaX Trace implementation state
+description: Tracks what has been built and what remains for ViaX Trace (antigo SignalWatch).
 ---
 
 ## What is done

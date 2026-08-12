@@ -1,71 +1,74 @@
-import { BookOpen, ChevronRight, FileText, Lock, Scale, ShieldCheck, Terminal, Zap } from 'lucide-react';
+import { BookOpen, ChevronRight, FileText, Lock, Scale, ShieldCheck, Target, Terminal, Zap } from 'lucide-react';
 import { Link } from 'wouter';
 
 function Logo() {
   return (
     <div className="flex items-center gap-2.5">
-      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="36" height="36" rx="10" fill="#116b68" />
-        <polyline points="4,18 10,18 13,9 16,27 19,13 22,18 32,18" stroke="#e9fff8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="13" cy="9" r="2.5" fill="#edb94b" />
+      <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="36" height="36" rx="9" fill="#ffffff" stroke="#e8e5df" strokeWidth="1"/>
+        <path d="M 11 9.5 C 12 20 25.5 15 25.5 27" stroke="#0f0f0f" strokeWidth="3.2" strokeLinecap="round" fill="none"/>
+        <circle cx="11" cy="9.5" r="3.4" fill="#0f0f0f"/>
+        <circle cx="25.5" cy="27" r="4.5" stroke="#e8531a" strokeWidth="2.8" fill="#ffffff"/>
       </svg>
-      <span style={{ fontFamily: "'Space Grotesk', sans-serif" }} className="text-xl font-bold tracking-[-0.04em] text-[#12383a]">SignalWatch</span>
+      <div className="flex flex-col leading-none">
+        <span className="text-[11px] font-bold uppercase tracking-[.22em] text-[#e8531a]">ViaX</span>
+        <span className="text-base font-bold tracking-[-0.02em] text-[#0f0f0f]">Trace</span>
+      </div>
     </div>
   );
 }
 
 const PREVIEW_ALERTS = [
-  { id: 'a-1', groupName: 'Comercial SP · oportunidades', message: 'Empresa pública abre cotação para suporte de rede e segurança. Envio de propostas até sexta-feira.', keyword: 'cotação' },
-  { id: 'a-2', groupName: 'Negócios & Parcerias BR', message: 'Busco parceiro no interior de Minas para distribuição de linha profissional. Operação recorrente.', keyword: 'parceiro' },
-  { id: 'a-3', groupName: 'Fornecedores B2B Brasil', message: 'Indicação de fornecedor para câmeras IP em três unidades. Alguém atende a região Sul?', keyword: 'câmeras IP' },
+  { id: 'a-1', groupName: 'Promos Eletrônicos BR', message: 'iPhone 15 Pro Max 256GB por R$4.299 — loja parceira, frete grátis SP/RJ.', keyword: 'iphone' },
+  { id: 'a-2', groupName: 'Ofertas Games 🎮', message: 'PS5 Slim + controle extra R$2.890 à vista. Estoque limitado, entrega imediata.', keyword: 'ps5' },
+  { id: 'a-3', groupName: 'Cupons & Cashback', message: 'Samsung Galaxy S24 com 30% de desconto + 10% cashback via Pix no app.', keyword: 'samsung' },
 ];
 
 export default function Landing() {
   return (
-    <div className="sw-noise min-h-[100dvh] overflow-hidden bg-[#f0faf5] text-[#12383a]">
+    <div className="vx-noise min-h-[100dvh] overflow-hidden bg-[#f4f3ef] text-[#0f0f0f]">
 
-      {/* ── Header ────────────────────────────────────────────────────── */}
+      {/* ── Header ─────────────────────────────────────────────────────── */}
       <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 lg:px-10">
         <Logo />
-        <nav className="hidden items-center gap-8 text-sm font-semibold text-[#4e7872] md:flex">
-          <a href="#metodologia" className="hover:text-[#116b68]">Metodologia</a>
-          <a href="#conformidade" className="hover:text-[#116b68]">Conformidade</a>
-          <Link href="/privacy" className="hover:text-[#116b68]">Documentação</Link>
+        <nav className="hidden items-center gap-8 text-sm font-semibold text-[#6b6560] md:flex">
+          <a href="#como-funciona" className="hover:text-[#e8531a]">Como funciona</a>
+          <a href="#diferenciais" className="hover:text-[#e8531a]">Diferenciais</a>
+          <Link href="/privacy" className="hover:text-[#e8531a]">Privacidade</Link>
         </nav>
         <div className="flex items-center gap-2">
-          <Link href="/sign-in" className="rounded-lg px-4 py-2.5 text-sm font-semibold text-[#4e7872] hover:bg-[#ddf4ec] hover:text-[#116b68]" data-testid="link-landing-sign-in">
+          <Link href="/sign-in" className="rounded-lg px-4 py-2.5 text-sm font-semibold text-[#6b6560] hover:bg-[#e8e5df] hover:text-[#0f0f0f]" data-testid="link-landing-sign-in">
             Entrar
           </Link>
-          <Link href="/sign-up" className="rounded-lg border border-[#116b68]/20 bg-[#116b68] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0d5754]" data-testid="link-landing-sign-up">
+          <Link href="/sign-up" className="rounded-lg bg-[#e8531a] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#d44517]" data-testid="link-landing-sign-up">
             Criar conta
           </Link>
         </div>
       </header>
 
       <main>
-        {/* ── Hero ──────────────────────────────────────────────────────── */}
-        <section className="mx-auto grid max-w-7xl gap-14 px-5 pb-24 pt-16 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:px-10 lg:pt-20">
+        {/* ── Hero ───────────────────────────────────────────────────────── */}
+        <section className="mx-auto grid max-w-7xl gap-14 px-5 pb-24 pt-16 lg:grid-cols-[.95fr_1.05fr] lg:items-center lg:px-10 lg:pt-20">
           <div className="relative z-10">
-            {/* Eyebrow */}
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#a8d8c8] bg-[#dff2ea] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.15em] text-[#267a70]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#edb94b]" />
-              Inteligência de mercado · B2B
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#e8531a]/20 bg-[#fee8da] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.15em] text-[#c43e12]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#e8531a]" />
+              Captura de promoções · Tempo real
             </div>
 
-            <h1 className="max-w-lg text-[2.8rem] font-bold leading-[1.08] tracking-[-0.055em] text-[#0e3035] lg:text-[3.8rem]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              Monitoramento preciso.<br />
-              <span className="text-[#2b8b7b]">Privacidade por arquitetura.</span>
+            <h1 className="max-w-lg text-[2.9rem] font-bold leading-[1.06] tracking-[-0.055em] text-[#0f0f0f] lg:text-[3.9rem]">
+              Capture promoções antes que<br />
+              <span className="text-[#e8531a]">todo mundo veja.</span>
             </h1>
 
-            <p className="mt-6 max-w-md text-[0.95rem] leading-[1.85] text-[#547874]">
-              Uma plataforma para profissionais e empresas que monitoram grupos do Telegram e precisam de inteligência estruturada — com controle total sobre o que é acompanhado, armazenado e descartado.
+            <p className="mt-6 max-w-md text-[0.95rem] leading-[1.85] text-[#6b6560]">
+              ViaX: Trace monitora grupos do Telegram pela palavra-chave que você definiu. Quando uma promoção aparece, você é o primeiro a saber — com controle total sobre o que é monitorado.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/sign-in" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#116b68] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(17,107,104,.22)] hover:bg-[#0d5754]" data-testid="link-hero-start">
+              <Link href="/sign-in" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#e8531a] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(232,83,26,.28)] hover:bg-[#d44517]" data-testid="link-hero-start">
                 Acessar plataforma <ChevronRight size={16} />
               </Link>
-              <Link href="/privacy" className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#b8ddd3] bg-white px-6 py-3.5 text-sm font-semibold text-[#38736d] hover:bg-[#eaf6f1]" data-testid="link-hero-docs">
+              <Link href="/privacy" className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#e0dcd5] bg-white px-6 py-3.5 text-sm font-semibold text-[#6b6560] hover:bg-[#f4f3ef]" data-testid="link-hero-docs">
                 Política de privacidade
               </Link>
             </div>
@@ -73,17 +76,17 @@ export default function Landing() {
             {/* Trust signals */}
             <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3">
               {[
-                { icon: Lock, label: 'AES-256-GCM', sub: 'Sessões criptografadas' },
-                { icon: ShieldCheck, label: 'LGPD', sub: 'Conformidade de dados' },
-                { icon: Zap, label: 'Tempo real', sub: 'Detecção contínua' },
+                { icon: Zap, label: 'Tempo real', sub: 'Detecção instantânea' },
+                { icon: Target, label: 'Por keyword', sub: 'Você define o radar' },
+                { icon: Lock, label: 'Sessão segura', sub: 'AES-256-GCM' },
               ].map(({ icon: Icon, label, sub }) => (
-                <div key={label} className="flex items-start gap-2.5 rounded-xl border border-[#cce4db] bg-white/70 px-3.5 py-3">
-                  <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#e2f5ee] text-[#2d8575]">
+                <div key={label} className="flex items-start gap-2.5 rounded-xl border border-[#e0dcd5] bg-white px-3.5 py-3">
+                  <div className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#fee8da] text-[#e8531a]">
                     <Icon size={13} />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-[#1c5450]">{label}</div>
-                    <div className="mt-0.5 text-[10px] leading-4 text-[#6a8c86]">{sub}</div>
+                    <div className="text-xs font-bold text-[#0f0f0f]">{label}</div>
+                    <div className="mt-0.5 text-[10px] leading-4 text-[#78736e]">{sub}</div>
                   </div>
                 </div>
               ))}
@@ -92,54 +95,54 @@ export default function Landing() {
 
           {/* Mock dashboard */}
           <div className="relative">
-            <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[#c5eadc] opacity-60 blur-3xl" />
-            <div className="relative rounded-[24px] border border-[#b7ddd0] bg-[#ddf2e9] p-3 shadow-[0_28px_72px_rgba(17,107,104,.16)] lg:rotate-[1deg]">
-              <div className="overflow-hidden rounded-[18px] border border-[#c0dbd2] bg-[#f6fefb]">
-                <div className="flex items-center justify-between border-b border-[#d4ebe3] bg-[#edf8f3] px-5 py-3.5">
+            <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[#fcc4a0] opacity-40 blur-3xl" />
+            <div className="relative rounded-[24px] border border-[#e8531a]/20 bg-[#fee8da] p-3 shadow-[0_28px_72px_rgba(232,83,26,.18)] lg:rotate-[1deg]">
+              <div className="overflow-hidden rounded-[18px] border border-[#f0c8b0] bg-[#fffcfa]">
+                <div className="flex items-center justify-between border-b border-[#f0c8b0] bg-[#fff8f4] px-5 py-3.5">
                   <div className="flex items-center gap-2">
-                    <div className="grid h-6 w-6 place-items-center rounded-lg bg-[#116b68] text-white">
+                    <div className="grid h-6 w-6 place-items-center rounded-lg bg-[#0f0f0f] text-white">
                       <Terminal size={12} />
                     </div>
-                    <span className="text-sm font-bold text-[#183f40]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>signal / hoje</span>
+                    <span className="text-sm font-bold text-[#0f0f0f]">trace / hoje</span>
                   </div>
-                  <span className="font-mono text-[9px] text-[#71908b]">LIVE · 24 sinais</span>
+                  <span className="font-mono text-[9px] text-[#9a9490]">LIVE · 24 capturas</span>
                 </div>
                 <div className="grid grid-cols-[1fr_1.35fr]">
-                  <div className="border-r border-[#d4ebe3] bg-[#eef9f5] p-4">
-                    <div className="text-[9px] font-bold uppercase tracking-widest text-[#7a9c96]">Panorama</div>
-                    <div className="mt-4 text-3xl font-bold tracking-[-0.06em] text-[#173e40]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>24</div>
-                    <div className="text-[10px] text-[#76918c]">sinais hoje</div>
+                  <div className="border-r border-[#f0c8b0] bg-[#fff4ee] p-4">
+                    <div className="text-[9px] font-bold uppercase tracking-widest text-[#9a9490]">Panorama</div>
+                    <div className="mt-4 text-3xl font-bold tracking-[-0.06em] text-[#0f0f0f]">24</div>
+                    <div className="text-[10px] text-[#78736e]">promos hoje</div>
                     <div className="mt-5 space-y-2.5">
-                      {[['Não lidos', '08', 'bg-[#edbd54]'], ['Regras', '02', 'bg-[#6bbca1]'], ['Grupos', '02', 'bg-[#75b3c0]']].map(([label, count, color]) => (
+                      {[['Não lidas', '08', 'bg-[#e8531a]'], ['Regras', '02', 'bg-[#0f0f0f]'], ['Grupos', '04', 'bg-[#c43e12]']].map(([label, count, color]) => (
                         <div key={label} className="flex items-center justify-between">
-                          <span className="text-[10px] text-[#698782]">{label}</span>
-                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-[#365d5b]">
+                          <span className="text-[10px] text-[#78736e]">{label}</span>
+                          <span className="flex items-center gap-1.5 text-[10px] font-bold text-[#0f0f0f]">
                             <i className={`h-1.5 w-1.5 rounded-full ${color}`} />{count}
                           </span>
                         </div>
                       ))}
                     </div>
-                    <div className="mt-7 rounded-lg bg-[#ceeee2] p-2.5">
-                      <div className="flex items-center gap-1 text-[9px] font-bold text-[#27756b]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#369984]" /> radar ativo
+                    <div className="mt-7 rounded-lg bg-[#fee0cc] p-2.5">
+                      <div className="flex items-center gap-1 text-[9px] font-bold text-[#c43e12]">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#e8531a]" /> radar ativo
                       </div>
-                      <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[#b4ded0]">
-                        <div className="h-full w-3/4 bg-[#369984]" />
+                      <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[#fcc4a0]">
+                        <div className="h-full w-3/4 bg-[#e8531a]" />
                       </div>
                     </div>
                   </div>
                   <div className="p-4">
-                    <div className="text-[9px] font-bold uppercase tracking-widest text-[#7d9c95]">Sinais recentes</div>
+                    <div className="text-[9px] font-bold uppercase tracking-widest text-[#9a9490]">Capturas recentes</div>
                     <div className="mt-3 space-y-2.5">
                       {PREVIEW_ALERTS.map((a, i) => (
-                        <div key={a.id} className={`rounded-lg border p-2.5 ${i === 0 ? 'border-[#a4d3c1] bg-[#f1fbf6]' : 'border-[#deeee8] bg-[#f9fffc]'}`}>
-                          <div className="flex items-center gap-1 text-[8px] font-bold text-[#398277]">
-                            <span className={`h-1.5 w-1.5 rounded-full ${i === 0 ? 'bg-[#e4b147]' : 'bg-[#b9d3cc]'}`} />
+                        <div key={a.id} className={`rounded-lg border p-2.5 ${i === 0 ? 'border-[#f0c8b0] bg-[#fff4ee]' : 'border-[#e8e5df] bg-[#fafaf8]'}`}>
+                          <div className="flex items-center gap-1 text-[8px] font-bold text-[#c43e12]">
+                            <span className={`h-1.5 w-1.5 rounded-full ${i === 0 ? 'bg-[#e8531a]' : 'bg-[#c8c4be]'}`} />
                             {a.groupName}
                           </div>
-                          <div className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#436461]">{a.message}</div>
+                          <div className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#3a3632]">{a.message}</div>
                           <div className="mt-1.5">
-                            <span className="rounded bg-[#e3f4ed] px-1.5 py-0.5 font-mono text-[7px] text-[#458278]">#{a.keyword}</span>
+                            <span className="rounded bg-[#fee8da] px-1.5 py-0.5 font-mono text-[7px] text-[#e8531a]">#{a.keyword}</span>
                           </div>
                         </div>
                       ))}
@@ -151,122 +154,121 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* ── Metodologia ─────────────────────────────────────────────── */}
-        <section id="metodologia" className="border-y border-[#d4e8e0] bg-white px-5 py-20 lg:px-10">
+        {/* ── Como funciona ──────────────────────────────────────────────── */}
+        <section id="como-funciona" className="border-y border-[#e4e1db] bg-white px-5 py-20 lg:px-10">
           <div className="mx-auto max-w-7xl">
             <div className="mb-12 max-w-xl">
-              <div className="mb-3 text-[11px] font-bold uppercase tracking-[.17em] text-[#38877c]">Nossa abordagem</div>
-              <h2 className="text-3xl font-bold leading-tight tracking-[-0.045em] text-[#0e3035] lg:text-4xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                Construído para quem não tem<br />espaço para pressupostos.
+              <div className="mb-3 text-[11px] font-bold uppercase tracking-[.17em] text-[#e8531a]">Fluxo operacional</div>
+              <h2 className="text-3xl font-bold leading-tight tracking-[-0.045em] text-[#0f0f0f] lg:text-4xl">
+                Do grupo ao alerta.<br />Em segundos.
               </h2>
-              <p className="mt-4 text-sm leading-7 text-[#567774]">
-                Cada decisão de produto parte da premissa de que o usuário sabe o que busca. Não há gamificação, painéis de engajamento ou push agressivo. Só sinal.
+              <p className="mt-4 text-sm leading-7 text-[#6b6560]">
+                Configure uma vez. O ViaX: Trace fica rodando, varrendo os grupos escolhidos, e notifica você assim que a palavra-chave aparecer — sem ruído, sem delay.
               </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
-              {[
-                {
-                  n: '01',
-                  icon: Terminal,
-                  title: 'Detecção por intenção',
-                  body: 'As regras são definidas com palavras-chave, operadores lógicos e exclusões explícitas. O sistema não infere — ele executa o que foi configurado.',
-                },
-                {
-                  n: '02',
-                  icon: ShieldCheck,
-                  title: 'Isolamento de sessão',
-                  body: 'Cada conta opera com sua própria sessão Telegram criptografada. Nenhum dado de grupo ou mensagem é compartilhado entre usuários.',
-                },
-                {
-                  n: '03',
-                  icon: Scale,
-                  title: 'Auditabilidade',
-                  body: 'Cada sinal registra origem, autor, horário e regra que o gerou. O histórico é auditável e deletável a qualquer momento.',
-                },
-              ].map(({ n, icon: Icon, title, body }) => (
-                <div key={n} className="rounded-2xl border border-[#d0e8e0] bg-[#f8fffc] p-6">
-                  <div className="flex items-center gap-3">
-                    <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#e0f4eb] text-[#2d8070]">
-                      <Icon size={16} />
+            <div className="relative">
+              <div className="absolute left-[22px] top-8 hidden h-[calc(100%-64px)] w-px bg-[#e4e1db] md:block" />
+              <div className="space-y-6">
+                {[
+                  {
+                    n: '01',
+                    title: 'Conecte sua conta Telegram via QR Code',
+                    body: 'Autenticação direta pelo QR do Telegram. Nenhuma senha é digitada na plataforma. A sessão fica criptografada e vinculada exclusivamente à sua conta.',
+                    badge: 'Sem senha · Seguro',
+                  },
+                  {
+                    n: '02',
+                    title: 'Defina palavras-chave e grupos-alvo',
+                    body: 'Configure quais grupos monitorar e quais palavras ativam um alerta. Use operadores de exclusão para filtrar ruído. Cada regra tem cooldown e prioridade configuráveis.',
+                    badge: 'Precisão total',
+                  },
+                  {
+                    n: '03',
+                    title: 'Receba capturas no inbox em tempo real',
+                    body: 'Cada alerta inclui grupo, horário, fragmento da mensagem e keyword acionada. Favorite, marque como lido ou arquive. Tudo rastreável e auditável.',
+                    badge: 'Rastreável · Auditável',
+                  },
+                ].map(({ n, title, body, badge }) => (
+                  <div key={n} className="relative flex gap-6 rounded-2xl border border-[#e4e1db] bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,.05)]">
+                    <div className="relative z-10 grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#0f0f0f] text-white text-sm font-bold">
+                      {n}
                     </div>
-                    <span className="font-mono text-xs font-bold text-[#5a9a8e]">{n}</span>
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <h3 className="text-base font-bold text-[#0f0f0f]">{title}</h3>
+                        <span className="rounded-full bg-[#fee8da] px-2.5 py-1 text-[10px] font-bold text-[#c43e12]">{badge}</span>
+                      </div>
+                      <p className="mt-2 text-sm leading-7 text-[#6b6560]">{body}</p>
+                    </div>
                   </div>
-                  <h3 className="mt-5 text-lg font-bold text-[#163b3a]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
-                  <p className="mt-2.5 text-sm leading-[1.75] text-[#5f7e79]">{body}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        {/* ── Como funciona ───────────────────────────────────────────── */}
-        <section className="mx-auto max-w-7xl px-5 py-20 lg:px-10">
-          <div className="mb-12 max-w-lg">
-            <div className="mb-3 text-[11px] font-bold uppercase tracking-[.17em] text-[#38877c]">Fluxo operacional</div>
-            <h2 className="text-3xl font-bold leading-tight tracking-[-0.045em] text-[#0e3035] lg:text-4xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              Do grupo ao sinal.<br />Com rastreabilidade completa.
+        {/* ── Diferenciais ───────────────────────────────────────────────── */}
+        <section id="diferenciais" className="mx-auto max-w-7xl px-5 py-20 lg:px-10">
+          <div className="mb-12 max-w-xl">
+            <div className="mb-3 text-[11px] font-bold uppercase tracking-[.17em] text-[#e8531a]">Por que ViaX: Trace</div>
+            <h2 className="text-3xl font-bold leading-tight tracking-[-0.045em] text-[#0f0f0f] lg:text-4xl">
+              Controle total.<br />Sem compromisso com o ruído.
             </h2>
           </div>
 
-          <div className="relative">
-            {/* Connector line */}
-            <div className="absolute left-[22px] top-8 hidden h-[calc(100%-64px)] w-px bg-[#c8e4db] md:block" />
-            <div className="space-y-6">
-              {[
-                {
-                  n: '01',
-                  title: 'Autorize sua sessão com QR code',
-                  body: 'A sessão é estabelecida via autenticação QR do próprio Telegram. Nenhuma senha é solicitada. A sessão fica vinculada exclusivamente à sua conta na plataforma.',
-                  badge: 'Sem senha · OAuth-like',
-                },
-                {
-                  n: '02',
-                  title: 'Configure regras com precisão cirúrgica',
-                  body: 'Defina palavras-chave obrigatórias, de exclusão e grupos-alvo. Configure prioridade, cooldown e tipo de correspondência (parcial, exata ou regex).',
-                  badge: 'Matching configurável',
-                },
-                {
-                  n: '03',
-                  title: 'Receba sinais estruturados no inbox',
-                  body: 'Cada alerta inclui grupo, autor, horário BRT, fragmento da mensagem, palavras-chave encontradas e regra acionada. Favoritos, leitura e arquivo disponíveis.',
-                  badge: 'Rastreável · Auditável',
-                },
-              ].map(({ n, title, body, badge }) => (
-                <div key={n} className="relative flex gap-6 rounded-2xl border border-[#d0e6de] bg-white p-6 shadow-[0_2px_12px_rgba(17,107,104,.06)]">
-                  <div className="relative z-10 grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#116b68] text-white text-sm font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                    {n}
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              {
+                n: '01',
+                icon: Target,
+                title: 'Detecção por intenção',
+                body: 'As regras são definidas com palavras-chave, operadores lógicos e exclusões explícitas. O sistema não infere — executa exatamente o que foi configurado.',
+              },
+              {
+                n: '02',
+                icon: ShieldCheck,
+                title: 'Sessão isolada por conta',
+                body: 'Cada conta opera com sua própria sessão Telegram criptografada com AES-256-GCM. Nenhum dado de grupo ou mensagem é compartilhado entre usuários.',
+              },
+              {
+                n: '03',
+                icon: Scale,
+                title: 'Auditabilidade completa',
+                body: 'Cada captura registra origem, horário e regra que a gerou. O histórico é auditável e deletável a qualquer momento diretamente nas configurações.',
+              },
+            ].map(({ n, icon: Icon, title, body }) => (
+              <div key={n} className="rounded-2xl border border-[#e4e1db] bg-white p-6">
+                <div className="flex items-center gap-3">
+                  <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#fee8da] text-[#e8531a]">
+                    <Icon size={16} />
                   </div>
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <h3 className="text-base font-bold text-[#163b3a]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
-                      <span className="rounded-full bg-[#e8f7f1] px-2.5 py-1 text-[10px] font-bold text-[#2e7e72]">{badge}</span>
-                    </div>
-                    <p className="mt-2 text-sm leading-7 text-[#567774]">{body}</p>
-                  </div>
+                  <span className="font-mono text-xs font-bold text-[#9a9490]">{n}</span>
                 </div>
-              ))}
-            </div>
+                <h3 className="mt-5 text-lg font-bold text-[#0f0f0f]">{title}</h3>
+                <p className="mt-2.5 text-sm leading-[1.75] text-[#6b6560]">{body}</p>
+              </div>
+            ))}
           </div>
         </section>
 
-        {/* ── Conformidade ────────────────────────────────────────────── */}
-        <section id="conformidade" className="bg-[#12383a] px-5 py-20 text-[#d4efe8] lg:px-10">
+        {/* ── Dark CTA / Conformidade ────────────────────────────────────── */}
+        <section className="bg-[#0f0f0f] px-5 py-20 text-[#e8e5e0] lg:px-10">
           <div className="mx-auto max-w-7xl">
             <div className="mb-12 grid gap-8 lg:grid-cols-[1fr_auto]">
               <div>
-                <div className="mb-3 text-[11px] font-bold uppercase tracking-[.17em] text-[#80d9be]">Privacidade e conformidade</div>
-                <h2 className="text-3xl font-bold leading-tight tracking-[-0.045em] text-white lg:text-4xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                  Seus dados, sua jurisdição,<br />seu controle.
+                <div className="mb-3 text-[11px] font-bold uppercase tracking-[.17em] text-[#e8531a]">Privacidade e conformidade</div>
+                <h2 className="text-3xl font-bold leading-tight tracking-[-0.045em] text-white lg:text-4xl">
+                  Seus dados, seu controle,<br />sua jurisdição.
                 </h2>
-                <p className="mt-4 max-w-xl text-sm leading-7 text-[#92c5b8]">
-                  A arquitetura da plataforma foi projetada com isolamento como premissa — não como recurso adicional. Abaixo estão os compromissos estruturais do produto.
+                <p className="mt-4 max-w-xl text-sm leading-7 text-[#9a9490]">
+                  A arquitetura foi projetada com isolamento como premissa — não como recurso adicional. Abaixo estão os compromissos estruturais do produto.
                 </p>
               </div>
               <div className="flex items-start">
-                <Link href="/privacy" className="inline-flex items-center gap-2 rounded-xl border border-[#3a6d6b] bg-[#1e4f4d] px-4 py-2.5 text-sm font-semibold text-[#80d9be] hover:bg-[#2a5e5c]">
+                <Link href="/privacy" className="inline-flex items-center gap-2 rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2.5 text-sm font-semibold text-[#e8531a] hover:bg-[#252525]">
                   <FileText size={15} />
-                  Política de privacidade completa
+                  Política de privacidade
                 </Link>
               </div>
             </div>
@@ -274,39 +276,39 @@ export default function Landing() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { icon: Lock, title: 'AES-256-GCM', body: 'Sessões Telegram criptografadas com chave derivada por conta. Nenhuma sessão de terceiros tem acesso cruzado.' },
-                { icon: ShieldCheck, title: 'Conformidade LGPD', body: 'Dados tratados estritamente conforme o escopo autorizado. Solicitação de exclusão disponível nas configurações de conta.' },
-                { icon: Scale, title: 'Dados por usuário', body: 'Histórico, grupos, regras e alertas ficam segregados por conta. Nada é compartilhado ou agregado entre usuários distintos.' },
-                { icon: BookOpen, title: 'Auditoria de acesso', body: 'Cada sessão ativa é registrada com dispositivo, IP e horário. Revogue acesso de dispositivos suspeitos diretamente na plataforma.' },
+                { icon: ShieldCheck, title: 'Conformidade LGPD', body: 'Dados tratados estritamente conforme o escopo autorizado. Solicitação de exclusão disponível nas configurações.' },
+                { icon: Scale, title: 'Dados por usuário', body: 'Histórico, grupos, regras e alertas ficam segregados por conta. Nada é compartilhado ou agregado entre usuários.' },
+                { icon: BookOpen, title: 'Auditoria de acesso', body: 'Cada sessão ativa é registrada com dispositivo, IP e horário. Revogue acesso de dispositivos suspeitos na plataforma.' },
               ].map(({ icon: Icon, title, body }) => (
-                <div key={title} className="rounded-2xl border border-[#2e5e5c] bg-[#1a4748] p-5">
-                  <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#276160] text-[#80d9be]">
+                <div key={title} className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
+                  <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#252525] text-[#e8531a]">
                     <Icon size={16} />
                   </div>
-                  <h3 className="mt-4 text-sm font-bold text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
-                  <p className="mt-2 text-[13px] leading-6 text-[#92c5b8]">{body}</p>
+                  <h3 className="mt-4 text-sm font-bold text-white">{title}</h3>
+                  <p className="mt-2 text-[13px] leading-6 text-[#78736e]">{body}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── Documentação / Termos ────────────────────────────────────── */}
-        <section className="border-y border-[#d4e8e0] bg-[#f8fffc] px-5 py-16 lg:px-10">
+        {/* ── Documentação ───────────────────────────────────────────────── */}
+        <section className="border-y border-[#e4e1db] bg-[#fafaf8] px-5 py-16 lg:px-10">
           <div className="mx-auto max-w-7xl">
-            <div className="mb-8 text-[11px] font-bold uppercase tracking-[.17em] text-[#38877c]">Estrutura legal e técnica</div>
+            <div className="mb-8 text-[11px] font-bold uppercase tracking-[.17em] text-[#e8531a]">Estrutura legal e técnica</div>
             <div className="grid gap-3 sm:grid-cols-3">
               {[
                 { icon: FileText, label: 'Termos de uso', href: '/terms', desc: 'Condições de uso da plataforma, limitações de responsabilidade e escopo do serviço.' },
                 { icon: ShieldCheck, label: 'Política de privacidade', href: '/privacy', desc: 'Como os dados são coletados, processados e protegidos conforme a LGPD.' },
                 { icon: BookOpen, label: 'Central de ajuda', href: '/privacy', desc: 'Documentação operacional, FAQs e guias de configuração de regras e conexão.' },
               ].map(({ icon: Icon, label, href, desc }) => (
-                <Link key={label} href={href} className="group flex gap-4 rounded-xl border border-[#cce4db] bg-white p-5 hover:border-[#116b68]/30 hover:shadow-[0_4px_16px_rgba(17,107,104,.08)]">
-                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#e4f4ee] text-[#2d8070] group-hover:bg-[#d0eee5]">
+                <Link key={label} href={href} className="group flex gap-4 rounded-xl border border-[#e4e1db] bg-white p-5 hover:border-[#e8531a]/30 hover:shadow-[0_4px_16px_rgba(232,83,26,.08)]">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#fee8da] text-[#e8531a] group-hover:bg-[#fde0cc]">
                     <Icon size={16} />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-[#163b3a]">{label}</div>
-                    <p className="mt-1 text-xs leading-5 text-[#5f7e79]">{desc}</p>
+                    <div className="text-sm font-bold text-[#0f0f0f]">{label}</div>
+                    <p className="mt-1 text-xs leading-5 text-[#6b6560]">{desc}</p>
                   </div>
                 </Link>
               ))}
@@ -315,14 +317,14 @@ export default function Landing() {
         </section>
       </main>
 
-      {/* ── Footer ──────────────────────────────────────────────────────── */}
-      <footer className="border-t border-[#d4e8e0] bg-[#f0faf5]">
+      {/* ── Footer ─────────────────────────────────────────────────────────── */}
+      <footer className="border-t border-[#e4e1db] bg-[#f4f3ef]">
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 px-5 py-8 sm:flex-row sm:items-center lg:px-10">
           <Logo />
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-[#6a8c86]">
-            <Link href="/terms" className="hover:text-[#116b68]" data-testid="link-footer-terms">Termos de uso</Link>
-            <Link href="/privacy" className="hover:text-[#116b68]" data-testid="link-footer-privacy">Privacidade</Link>
-            <span className="text-[#a8c4bc]">© 2026 SignalWatch</span>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-[#78736e]">
+            <Link href="/terms" className="hover:text-[#e8531a]" data-testid="link-footer-terms">Termos de uso</Link>
+            <Link href="/privacy" className="hover:text-[#e8531a]" data-testid="link-footer-privacy">Privacidade</Link>
+            <span className="text-[#9a9490]">© 2026 ViaX: Trace</span>
           </div>
         </div>
       </footer>
