@@ -6,43 +6,47 @@ description: Tracks what has been built and what remains for the SignalWatch Saa
 ## What is done
 
 ### Backend (artifacts/api-server)
-- Clerk middleware integrated (`@clerk/express`, proxy middleware for production)
+- Clerk middleware (`@clerk/express`) + proxy middleware for production
 - `requireAuth` middleware — every protected route reads `req.userId` from Clerk
-- All routes live in `src/routes/signalwatch.ts`, isolated by `clerkUserId`
-- Mercado Pago adapter via raw fetch (no SDK); token from `MERCADOPAGO_ACCESS_TOKEN` env secret
-- Webhook endpoint at `POST /api/billing/webhook` (public, validates payment from MP)
-- Telegram connector guard via `telegramConnectorAvailable()` — returns unavailable state when env vars are missing
-- `src/lib/signalwatch.ts` — billing plans definition, `ensureWorkspace`, `connectionDto`, `getBillingPlan`
+- All routes in `src/routes/signalwatch.ts`, isolated by `clerkUserId`
+- Mercado Pago adapter via raw fetch; token from `MERCADOPAGO_ACCESS_TOKEN` env secret
+- Telegram connector real: `src/lib/telegramService.ts` — QR code auth, session encryption (AES-256-GCM), message listener, group sync, session restore on startup
+- Admin detection: `SIGNALWATCH_ADMIN_EMAILS` env var → Clerk API lookup → `isAdmin=true` + `planId='admin'` (unlimited)
+- `bufferutil` and `utf-8-validate` added as direct deps of api-server to fix pnpm resolution issue
+- `pnpm.onlyBuiltDependencies` set in root package.json for bufferutil, utf-8-validate, @clerk/shared, es5-ext
 
 ### Database (lib/db)
-Tables created and migrated to dev PostgreSQL:
-- `signalwatch_profiles` — per-user preferences and billing state
-- `signalwatch_groups` — Telegram groups with monitoring state
-- `signalwatch_rules` — keyword rules per user
-- `signalwatch_alerts` — matched alerts
-- `signalwatch_connections` — Telegram session state (session ciphertext encrypted field reserved)
-- `signalwatch_checkouts` — Mercado Pago Pix checkout tracking
+Tables with all columns migrated to dev PostgreSQL:
+- `signalwatch_profiles` — `isAdmin boolean` column added
+- `signalwatch_groups`, `signalwatch_rules`, `signalwatch_alerts`, `signalwatch_connections`, `signalwatch_checkouts`
 
 ### Frontend (artifacts/signalwatch)
-- Landing page (extracted to `src/pages/Landing.tsx` — proper JSX)
-- App shell with sidebar, nav, mobile drawer, plan usage widget
-- Dashboard: metrics, recent alerts, plan usage bar, next-step card
-- Alerts page: search, period filter, read/favorite/archive actions
-- Rules page: list + create/edit modal with keyword fields
-- Groups page: monitoring toggle, sync action
-- Connection page: QR code flow (shows unavailable state until Telegram credentials added)
-- Billing page: plan cards, cycle toggle, Pix checkout creation
-- Settings page: language/timezone/format/notifications preferences
-- Onboarding page: 3-step wizard
-- Auth pages: sign-in and sign-up (visual shells — Clerk UI integration pending)
-- Legal pages: terms and privacy
+- Real Clerk auth: `ClerkProvider` wrapping app, `SignIn`/`SignUp` Clerk components at `/sign-in` and `/sign-up`
+- `ProtectedRoute` redirects to `/sign-in` when signed out; home redirects to `/app` when signed in
+- `AppShell` uses `useUser()` for name/avatar, `useClerk().signOut()` for logout button
+- Clerk appearance: teal theme with SignalWatch brand colors, logo at `public/logo.svg`
+- Clerk localization: PT-BR titles ("Bem-vindo de volta.", "Crie seu radar.")
+- Session cache invalidation via `ClerkQueryClientCacheInvalidator`
+- ConnectionPage: shows real QR code (base64 PNG from backend), polls status every 3s after QR is shown
+- Clerk layer declared in index.css before tailwindcss import
+- vite.config.ts: `tailwindcss({ optimize: false })` to prevent Clerk styles breaking in prod
+
+### Secrets configured
+- `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`, `SESSION_SECRET` — active
+- `TELEGRAM_API_ID`, `TELEGRAM_API_HASH` — active (real user credentials)
+- `SIGNALWATCH_ADMIN_EMAILS` — set to admin email for unlimited access
+- `MERCADOPAGO_ACCESS_TOKEN` — NOT YET set, user will provide later
 
 ## What remains
 
-1. **Clerk UI integration in frontend** — replace mock AuthPage with real `<SignIn>` and `<SignUp>` Clerk components; add `useAuth` hook to AppShell for real user name/avatar and sign-out.
-2. **Telegram conector real** — requires `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` env secrets; then `telegramConnectorAvailable()` returns true and the QR flow activates.
-3. **Mercado Pago token** — user will provide via Replit secrets flow; already wired, just needs `MERCADOPAGO_ACCESS_TOKEN` set.
-4. **Background Telegram listener** — when session is active, listen to group messages and match against rules to create alerts in real time.
+1. **Telegram 2FA** — if user has 2FA enabled, current flow throws an error. Would need a UI flow to collect the password.
+2. **Mercado Pago** — wired but disabled until `MERCADOPAGO_ACCESS_TOKEN` is set.
+3. **Production DB migration** — after deploy, run `pnpm --filter @workspace/db run push` against prod DB.
 
-## Why app shows 401 without login
-Expected behavior. The API requires Clerk JWT on every route except the billing webhook. The frontend uses fallback data when API calls fail.
+## Key quirks / non-obvious decisions
+
+- `bufferutil`/`utf-8-validate` are in esbuild `external[]` list AND must be direct deps of api-server (pnpm won't hoist otherwise) — both conditions required.
+- Root `package.json` must have `pnpm.onlyBuiltDependencies` to allow native module build scripts.
+- Clerk `publishableKeyFromHost` from `@clerk/react/internal` — never the raw env var directly.
+- Telegram QR auth: `client.signInUserWithQrCode()` runs in background; HTTP endpoint returns immediately with first QR (wait max 8s). Frontend polls `/connection/status` every 3s to detect scan.
+- Admin plan `id='admin'` is not in `BILLING_PLANS` array — `getBillingPlan()` handles it separately.

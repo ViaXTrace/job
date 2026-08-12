@@ -57,6 +57,13 @@ import {
   getBillingPlan,
   telegramConnectorAvailable,
 } from "../lib/signalwatch";
+import {
+  startQRAuth,
+  syncGroups,
+  disconnectClient,
+  restoreSession,
+  getActiveClient,
+} from "../lib/telegramService";
 
 const router: IRouter = Router();
 
@@ -481,6 +488,7 @@ router.get("/connection/status", async (req, res): Promise<void> => {
 
 router.post("/connection/qr", async (req, res): Promise<void> => {
   const { connection } = await ensureWorkspace(userId(req));
+
   if (!telegramConnectorAvailable()) {
     res.json(
       CreateConnectionQrResponse.parse({
@@ -492,22 +500,71 @@ router.post("/connection/qr", async (req, res): Promise<void> => {
     );
     return;
   }
+
+  // If already connected, restore session if needed and return connected status
+  if (connection.status === "connected" && connection.sessionCiphertext) {
+    restoreSession(userId(req), connection.sessionCiphertext).catch(console.error);
+    res.json(
+      CreateConnectionQrResponse.parse({
+        status: "connected",
+        qrData: null,
+        expiresAt: null,
+        message: null,
+      }),
+    );
+    return;
+  }
+
+  const result = await startQRAuth(userId(req));
+
+  if ("error" in result) {
+    res.json(
+      CreateConnectionQrResponse.parse({
+        status: "error",
+        qrData: null,
+        expiresAt: null,
+        message: result.error,
+      }),
+    );
+    return;
+  }
+
   res.json(
     CreateConnectionQrResponse.parse({
-      status: "unavailable",
-      qrData: null,
-      expiresAt: null,
-      message: "O conector Telegram precisa ser habilitado pelo responsável da plataforma.",
+      status: "pending",
+      qrData: result.dataUrl,
+      expiresAt: result.expiresAt,
+      message: null,
     }),
   );
 });
 
 router.post("/connection/sync", async (req, res): Promise<void> => {
   const { connection } = await ensureWorkspace(userId(req));
-  res.json(RefreshConnectionResponse.parse(connectionDto(connection)));
+
+  // If connected, restore session and sync real groups
+  if (connection.status === "connected" && connection.sessionCiphertext) {
+    const client = getActiveClient(userId(req));
+    if (client) {
+      await syncGroups(userId(req), client).catch(console.error);
+    } else {
+      await restoreSession(userId(req), connection.sessionCiphertext);
+      const restored = getActiveClient(userId(req));
+      if (restored) await syncGroups(userId(req), restored).catch(console.error);
+    }
+  }
+
+  const [updated] = await db
+    .select()
+    .from(signalwatchConnectionsTable)
+    .where(eq(signalwatchConnectionsTable.clerkUserId, userId(req)))
+    .limit(1);
+
+  res.json(RefreshConnectionResponse.parse(connectionDto(updated ?? connection)));
 });
 
 router.post("/connection/disconnect", async (req, res): Promise<void> => {
+  await disconnectClient(userId(req));
   const [connection] = await db
     .update(signalwatchConnectionsTable)
     .set({
