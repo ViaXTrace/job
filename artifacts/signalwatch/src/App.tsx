@@ -22,7 +22,7 @@ import type {
   Alert, BillingPlan, BillingStatus, DashboardSummary, KeywordRule, TelegramConnection,
   TelegramGroup, UserPreference,
 } from '@workspace/api-client-react';
-import { ClerkProvider, Redirect, Show, SignIn, SignUp, useClerk, useUser } from '@clerk/react';
+import { ClerkProvider, Redirect, Show, SignIn, SignUp, useAuth, useClerk, useUser } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -283,12 +283,301 @@ function GroupsPage() {
 }
 
 function ConnectionPage({ onboarding = false }: { onboarding?: boolean }) {
-  const query = useGetConnectionStatus({ query: { queryKey: getGetConnectionStatusQueryKey() } }); const connection = query.data ?? fallbackConnection; const qr = useCreateConnectionQr(); const refresh = useRefreshConnection(); const disconnect = useDisconnectTelegram(); const qc = useQueryClient(); const [qrState, setQrState] = useState<{ qrData: string | null; status: string; message?: string | null } | null>(null);
-  const startQr = () => qr.mutate(undefined, { onSuccess: result => { setQrState(result); qc.invalidateQueries({ queryKey: getGetConnectionStatusQueryKey() }); if (result.status === 'pending') { const poll = setInterval(() => { qc.invalidateQueries({ queryKey: getGetConnectionStatusQueryKey() }); }, 3000); setTimeout(() => clearInterval(poll), 120_000); } }, onError: () => toast({ title: 'Telegram indisponível.', description: 'O conector ainda não pode iniciar uma autorização neste ambiente.', variant: 'destructive' }) });
-  const doRefresh = () => refresh.mutate(undefined, { onSuccess: () => { qc.invalidateQueries({ queryKey: getGetConnectionStatusQueryKey() }); toast({ title: 'Status atualizado.' }); }, onError: () => toast({ title: 'Não foi possível atualizar a conexão.', variant: 'destructive' }) });
-  const doDisconnect = () => disconnect.mutate(undefined, { onSuccess: () => { qc.invalidateQueries({ queryKey: getGetConnectionStatusQueryKey() }); toast({ title: 'Sessão desconectada.' }); }, onError: () => toast({ title: 'Não foi possível desconectar.', variant: 'destructive' }) });
-  const unavailable = !connection.connectorAvailable || connection.status === 'unavailable' || qrState?.status === 'unavailable';
-  return <>{!onboarding && <PageHeader eyebrow="Fonte dos sinais" title="Conexão Telegram" description="Uma sessão pessoal e protegida para ler os grupos que você escolheu. O SignalWatch nunca pede sua senha." action={<Button variant="secondary" onClick={doRefresh} disabled={refresh.isPending} data-testid="button-refresh-connection"><RefreshCw size={15} /> Atualizar status</Button>} />}<div className={`grid gap-6 ${onboarding ? '' : 'xl:grid-cols-[.8fr_1.2fr]'}`}><section className="sw-card rounded-2xl p-6 lg:p-8"><div className="flex items-center gap-3"><div className={`grid h-11 w-11 place-items-center rounded-xl ${unavailable ? 'bg-[#fff0d0] text-[#a4751c]' : connection.status === 'connected' ? 'bg-[#ddf5eb] text-[#267a70]' : 'bg-[#e1f1f2] text-[#397c86]'}`}><Link2 size={20} /></div><div><div className="text-[11px] font-bold uppercase tracking-[.14em] text-[#6f8d88]">Estado da sessão</div><h2 className="sw-display text-2xl font-bold text-[#12383a]">{unavailable ? 'Conector indisponível' : connection.status === 'connected' ? 'Telegram conectado' : 'Aguardando autorização'}</h2></div></div><div className="mt-7 rounded-xl bg-[#eef8f4] p-4"><div className="flex items-center gap-2 text-sm font-bold text-[#26766e]"><ShieldCheck size={17} /> Privacidade por desenho</div><p className="mt-2 text-sm leading-6 text-[#5b7d78]">Sua sessão fica vinculada à sua conta. Nenhum grupo é monitorado até você escolher ativá-lo.</p></div>{unavailable ? <div className="mt-6 rounded-xl border border-[#eed9aa] bg-[#fffaed] p-4"><div className="flex items-center gap-2 font-bold text-[#916b24]"><CircleAlert size={17} /> Integração temporariamente indisponível</div><p className="mt-2 text-sm leading-6 text-[#8e7746]">{connection.message ?? 'O conector do Telegram não está disponível. Tente novamente quando o serviço for habilitado.'}</p></div> : connection.status === 'connected' ? <div className="mt-6 space-y-4"><div className="flex items-center justify-between rounded-xl border border-[#cfe5dd] p-4"><div><div className="text-xs text-[#7d9994]">Conta autorizada</div><div className="mt-1 font-bold text-[#315c58]">{connection.accountLabel ?? 'Conta Telegram'}</div></div><Pill tone="teal"><Check size={12} /> Ativa</Pill></div><div className="grid grid-cols-2 gap-3"><div className="rounded-xl bg-[#f0f8f5] p-4"><div className="text-xs text-[#809b96]">Última sincronização</div><div className="mt-1 text-sm font-bold text-[#3a6963]">{formatDay(connection.lastSyncAt)}</div></div><div className="rounded-xl bg-[#f0f8f5] p-4"><div className="text-xs text-[#809b96]">Último evento</div><div className="mt-1 text-sm font-bold text-[#3a6963]">{formatDay(connection.lastEventAt)}</div></div></div><Button variant="danger" onClick={doDisconnect} disabled={disconnect.isPending} data-testid="button-disconnect-telegram"><Unplug size={15} /> Desconectar sessão</Button></div> : <Button onClick={startQr} disabled={qr.isPending} className="mt-6 w-full" data-testid="button-start-telegram-qr"><QrCode size={17} /> {qr.isPending ? 'Preparando autorização…' : 'Autorizar com QR code'}</Button>}</section>{!onboarding && <section className="sw-card rounded-2xl p-6 lg:p-8"><div className="flex items-center justify-between"><div><div className="text-[11px] font-bold uppercase tracking-[.14em] text-[#6f8d88]">Autorização</div><h2 className="sw-display mt-1 text-2xl font-bold text-[#12383a]">Conecte sem compartilhar senha</h2></div><div className="text-[#68a399]"><LockKeyhole size={22} /></div></div>{qrState && !unavailable && qrState.qrData ? <div className="mt-7 flex flex-col items-center rounded-2xl border border-[#d4e9e2] bg-[#f7fffb] p-6 text-center"><img src={qrState.qrData} alt="QR code Telegram" className="h-52 w-52 rounded-xl" /><Pill tone="amber"><Clock3 size={12} /> QR code expira em breve</Pill><p className="mt-3 max-w-sm text-sm leading-6 text-[#62817c]">Abra o Telegram no celular, vá em <strong>Configurações → Dispositivos</strong> e escaneie o código.</p></div> : <div className="mt-7 rounded-2xl border border-dashed border-[#bcdad1] bg-[#f4fbf8] p-8 text-center"><div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#dff4ea] text-[#378479]"><QrCode size={26} /></div><h3 className="sw-display mt-4 text-lg font-bold text-[#244f4c]">Nenhuma autorização em andamento</h3><p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#76938e]">Quando o conector estiver disponível, o QR code aparecerá aqui. O status nunca será presumido.</p></div>}<div className="mt-6 grid gap-3 sm:grid-cols-3">{[['1', 'Solicite', 'Gere uma autorização segura'], ['2', 'Escaneie', 'Use Dispositivos no Telegram'], ['3', 'Escolha', 'Ative os grupos certos']].map(([n, t, b]) => <div key={n} className="flex gap-3"><div className="sw-mono grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#d9f2e8] text-[11px] font-bold text-[#28766d]">{n}</div><div><div className="text-xs font-bold text-[#436b67]">{t}</div><div className="mt-0.5 text-[11px] leading-4 text-[#8ba39e]">{b}</div></div></div>)}</div></section>}</div></>;
+  const query = useGetConnectionStatus({ query: { queryKey: getGetConnectionStatusQueryKey() } });
+  const connection = query.data ?? fallbackConnection;
+  const qr = useCreateConnectionQr();
+  const refresh = useRefreshConnection();
+  const disconnect = useDisconnectTelegram();
+  const qc = useQueryClient();
+  const { getToken } = useAuth();
+
+  // QR + SSE state
+  const [qrData, setQrData] = useState<string | null>(null);
+  const [qrExpiresAt, setQrExpiresAt] = useState<Date | null>(null);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [qrSecondsLeft, setQrSecondsLeft] = useState(0);
+  const sseRef = useRef<EventSource | null>(null);
+
+  // 2FA state
+  const [show2FA, setShow2FA] = useState(false);
+  const [password2FA, setPassword2FA] = useState('');
+  const [submitting2FA, setSubmitting2FA] = useState(false);
+  const [error2FA, setError2FA] = useState('');
+
+  // QR expiry countdown
+  useEffect(() => {
+    if (!qrExpiresAt) { setQrSecondsLeft(0); return; }
+    const tick = () => setQrSecondsLeft(Math.max(0, Math.round((qrExpiresAt.getTime() - Date.now()) / 1000)));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [qrExpiresAt]);
+
+  // Cleanup SSE on unmount
+  useEffect(() => () => { sseRef.current?.close(); }, []);
+
+  async function openSSE() {
+    sseRef.current?.close();
+    try {
+      const token = await getToken();
+      const authResp = await fetch(`${basePath}/api/connection/events/auth`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!authResp.ok) return;
+      const { nonce } = await authResp.json() as { nonce: string };
+      const es = new EventSource(`${basePath}/api/connection/events?nonce=${nonce}`);
+      sseRef.current = es;
+      es.onmessage = (e: MessageEvent) => {
+        const data = JSON.parse(e.data as string) as { type: string; dataUrl?: string; expiresAt?: string; accountLabel?: string; message?: string };
+        if (data.type === 'ping') return;
+        if (data.type === 'qr') {
+          setQrData(data.dataUrl ?? null);
+          setQrExpiresAt(data.expiresAt ? new Date(data.expiresAt) : null);
+          setQrError(null);
+        }
+        if (data.type === 'connected') {
+          setQrData(null);
+          setQrExpiresAt(null);
+          setShow2FA(false);
+          qc.invalidateQueries({ queryKey: getGetConnectionStatusQueryKey() });
+          toast({ title: '✓ Telegram conectado!', description: data.accountLabel ?? 'Sua sessão está ativa.' });
+          es.close();
+          sseRef.current = null;
+        }
+        if (data.type === 'needs_2fa') {
+          setShow2FA(true);
+        }
+        if (data.type === 'error') {
+          setQrError(data.message ?? 'Erro durante a autorização.');
+          setQrData(null);
+        }
+      };
+      es.onerror = () => { /* connection closed or network error — silently close */ es.close(); };
+    } catch { /* network error — ignore */ }
+  }
+
+  const startQr = () => {
+    setQrError(null);
+    openSSE();
+    qr.mutate(undefined, {
+      onSuccess: result => {
+        if (result.qrData) { setQrData(result.qrData); setQrExpiresAt(result.expiresAt ? new Date(result.expiresAt as unknown as string) : null); }
+        qc.invalidateQueries({ queryKey: getGetConnectionStatusQueryKey() });
+      },
+      onError: () => toast({ title: 'Telegram indisponível.', description: 'O conector ainda não pode iniciar uma autorização neste ambiente.', variant: 'destructive' }),
+    });
+  };
+
+  const doRefresh = () => refresh.mutate(undefined, {
+    onSuccess: () => { qc.invalidateQueries({ queryKey: getGetConnectionStatusQueryKey() }); toast({ title: 'Status atualizado.' }); },
+    onError: () => toast({ title: 'Não foi possível atualizar a conexão.', variant: 'destructive' }),
+  });
+
+  const doDisconnect = () => disconnect.mutate(undefined, {
+    onSuccess: () => { qc.invalidateQueries({ queryKey: getGetConnectionStatusQueryKey() }); toast({ title: 'Sessão desconectada.' }); },
+    onError: () => toast({ title: 'Não foi possível desconectar.', variant: 'destructive' }),
+  });
+
+  const submit2FA = async () => {
+    if (!password2FA.trim()) return;
+    setSubmitting2FA(true);
+    setError2FA('');
+    try {
+      const token = await getToken();
+      const resp = await fetch(`${basePath}/api/connection/2fa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ password: password2FA }),
+      });
+      if (!resp.ok) throw new Error('failed');
+      setPassword2FA('');
+      toast({ title: 'Senha enviada.', description: 'Aguardando confirmação do Telegram…' });
+    } catch {
+      setError2FA('Senha incorreta ou expirada. Tente novamente.');
+    } finally {
+      setSubmitting2FA(false);
+    }
+  };
+
+  const unavailable = !connection.connectorAvailable || connection.status === 'unavailable';
+  const showingQr = !!qrData && !unavailable && connection.status !== 'connected';
+
+  return (
+    <>
+      {!onboarding && (
+        <PageHeader
+          eyebrow="Fonte dos sinais"
+          title="Conexão Telegram"
+          description="Uma sessão pessoal e protegida para ler os grupos que você escolheu. O SignalWatch nunca pede sua senha."
+          action={<Button variant="secondary" onClick={doRefresh} disabled={refresh.isPending} data-testid="button-refresh-connection"><RefreshCw size={15} /> Atualizar status</Button>}
+        />
+      )}
+
+      {/* 2FA modal */}
+      {show2FA && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#12383a]/60 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-7 shadow-2xl">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#fff0d0] text-[#9c6e1a]">
+                <KeyRound size={20} />
+              </div>
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-[.14em] text-[#6f8d88]">Verificação em duas etapas</div>
+                <h2 className="sw-display text-xl font-bold text-[#12383a]">Insira sua senha do Telegram</h2>
+              </div>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-[#5b7d78]">
+              Sua conta tem verificação em duas etapas ativa. Insira a senha que você configurou no Telegram para continuar.
+            </p>
+            <div className="mt-5">
+              <input
+                type="password"
+                value={password2FA}
+                onChange={e => { setPassword2FA(e.target.value); setError2FA(''); }}
+                onKeyDown={e => e.key === 'Enter' && submit2FA()}
+                placeholder="Senha do Telegram"
+                className="form-input w-full"
+                autoFocus
+                data-testid="input-2fa-password"
+              />
+              {error2FA && <p className="mt-2 text-xs font-medium text-[#de765f]">{error2FA}</p>}
+            </div>
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => { setShow2FA(false); setPassword2FA(''); setError2FA(''); }}
+                className="flex-1 rounded-lg border border-[#c5dfd8] py-2.5 text-sm font-bold text-[#527b76] hover:bg-[#eef8f4]"
+                data-testid="button-cancel-2fa"
+              >Cancelar</button>
+              <button
+                onClick={submit2FA}
+                disabled={submitting2FA || !password2FA.trim()}
+                className="flex-1 rounded-lg bg-[#116b68] py-2.5 text-sm font-bold text-white hover:bg-[#0d5754] disabled:opacity-50"
+                data-testid="button-submit-2fa"
+              >{submitting2FA ? 'Enviando…' : 'Confirmar'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={`grid gap-6 ${onboarding ? '' : 'xl:grid-cols-[.8fr_1.2fr]'}`}>
+        {/* Left panel — session state */}
+        <section className="sw-card rounded-2xl p-6 lg:p-8">
+          <div className="flex items-center gap-3">
+            <div className={`grid h-11 w-11 place-items-center rounded-xl ${unavailable ? 'bg-[#fff0d0] text-[#a4751c]' : connection.status === 'connected' ? 'bg-[#ddf5eb] text-[#267a70]' : 'bg-[#e1f1f2] text-[#397c86]'}`}>
+              <Link2 size={20} />
+            </div>
+            <div>
+              <div className="text-[11px] font-bold uppercase tracking-[.14em] text-[#6f8d88]">Estado da sessão</div>
+              <h2 className="sw-display text-2xl font-bold text-[#12383a]">
+                {unavailable ? 'Conector indisponível' : connection.status === 'connected' ? 'Telegram conectado' : showingQr ? 'Aguardando escaneamento' : 'Aguardando autorização'}
+              </h2>
+            </div>
+          </div>
+
+          <div className="mt-7 rounded-xl bg-[#eef8f4] p-4">
+            <div className="flex items-center gap-2 text-sm font-bold text-[#26766e]"><ShieldCheck size={17} /> Privacidade por desenho</div>
+            <p className="mt-2 text-sm leading-6 text-[#5b7d78]">Sua sessão fica vinculada à sua conta. Nenhum grupo é monitorado até você escolher ativá-lo.</p>
+          </div>
+
+          {unavailable ? (
+            <div className="mt-6 rounded-xl border border-[#eed9aa] bg-[#fffaed] p-4">
+              <div className="flex items-center gap-2 font-bold text-[#916b24]"><CircleAlert size={17} /> Integração temporariamente indisponível</div>
+              <p className="mt-2 text-sm leading-6 text-[#8e7746]">{connection.message ?? 'O conector do Telegram não está disponível. Tente novamente quando o serviço for habilitado.'}</p>
+            </div>
+          ) : connection.status === 'connected' ? (
+            <div className="mt-6 space-y-4">
+              <div className="flex items-center justify-between rounded-xl border border-[#cfe5dd] p-4">
+                <div>
+                  <div className="text-xs text-[#7d9994]">Conta autorizada</div>
+                  <div className="mt-1 font-bold text-[#315c58]">{connection.accountLabel ?? 'Conta Telegram'}</div>
+                </div>
+                <Pill tone="teal"><Check size={12} /> Ativa</Pill>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl bg-[#f0f8f5] p-4">
+                  <div className="text-xs text-[#809b96]">Última sincronização</div>
+                  <div className="mt-1 text-sm font-bold text-[#3a6963]">{formatDay(connection.lastSyncAt)}</div>
+                </div>
+                <div className="rounded-xl bg-[#f0f8f5] p-4">
+                  <div className="text-xs text-[#809b96]">Último evento</div>
+                  <div className="mt-1 text-sm font-bold text-[#3a6963]">{formatDay(connection.lastEventAt)}</div>
+                </div>
+              </div>
+              <Button variant="danger" onClick={doDisconnect} disabled={disconnect.isPending} data-testid="button-disconnect-telegram">
+                <Unplug size={15} /> Desconectar sessão
+              </Button>
+            </div>
+          ) : (
+            <>
+              {qrError && (
+                <div className="mt-4 rounded-xl border border-[#eed9aa] bg-[#fffaed] p-3 text-sm text-[#8e7746]">
+                  <span className="font-bold">Erro: </span>{qrError}
+                </div>
+              )}
+              <Button
+                onClick={startQr}
+                disabled={qr.isPending}
+                className="mt-6 w-full"
+                data-testid="button-start-telegram-qr"
+              >
+                <QrCode size={17} /> {qr.isPending ? 'Preparando autorização…' : showingQr ? 'Gerar novo QR code' : 'Autorizar com QR code'}
+              </Button>
+            </>
+          )}
+        </section>
+
+        {/* Right panel — QR code */}
+        {!onboarding && (
+          <section className="sw-card rounded-2xl p-6 lg:p-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-[.14em] text-[#6f8d88]">Autorização</div>
+                <h2 className="sw-display mt-1 text-2xl font-bold text-[#12383a]">Conecte sem compartilhar senha</h2>
+              </div>
+              <div className="text-[#68a399]"><LockKeyhole size={22} /></div>
+            </div>
+
+            {showingQr ? (
+              <div className="mt-7 flex flex-col items-center rounded-2xl border border-[#d4e9e2] bg-[#f7fffb] p-6 text-center">
+                <img src={qrData!} alt="QR code Telegram" className="h-52 w-52 rounded-xl" />
+                <div className="mt-3 flex items-center gap-2">
+                  <Pill tone={qrSecondsLeft < 8 ? 'amber' : 'teal'}>
+                    <Clock3 size={12} /> {qrSecondsLeft > 0 ? `Expira em ${qrSecondsLeft}s` : 'Renovando…'}
+                  </Pill>
+                </div>
+                <p className="mt-3 max-w-sm text-sm leading-6 text-[#62817c]">
+                  Abra o Telegram no celular, vá em <strong>Configurações → Dispositivos</strong> e escaneie o código. O QR é renovado automaticamente.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-7 rounded-2xl border border-dashed border-[#bcdad1] bg-[#f4fbf8] p-8 text-center">
+                <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#dff4ea] text-[#378479]">
+                  <QrCode size={26} />
+                </div>
+                <h3 className="sw-display mt-4 text-lg font-bold text-[#244f4c]">Nenhuma autorização em andamento</h3>
+                <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#76938e]">
+                  Clique em "Autorizar com QR code" para gerar um código. Ele é atualizado automaticamente em tempo real.
+                </p>
+              </div>
+            )}
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              {[['1', 'Solicite', 'Gere uma autorização segura'], ['2', 'Escaneie', 'Use Dispositivos no Telegram'], ['3', 'Escolha', 'Ative os grupos certos']].map(([n, t, b]) => (
+                <div key={n} className="flex gap-3">
+                  <div className="sw-mono grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#d9f2e8] text-[11px] font-bold text-[#28766d]">{n}</div>
+                  <div>
+                    <div className="text-xs font-bold text-[#436b67]">{t}</div>
+                    <div className="mt-0.5 text-[11px] leading-4 text-[#8ba39e]">{b}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    </>
+  );
 }
 
 function BillingPage() {
@@ -320,8 +609,15 @@ function OnboardingPage() {
     setSaving(true);
     setNameError('');
     try {
-      await user?.update({ firstName: firstName.trim(), lastName: lastName.trim() || undefined });
-      setStep(2);
+      const token = await user?.getToken();
+    const resp = await fetch(`${basePath}/api/profile/name`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ firstName: firstName.trim(), lastName: lastName.trim() }),
+    });
+    if (!resp.ok) throw new Error('failed');
+    await user?.reload();
+    setStep(2);
     } catch {
       setNameError('Não foi possível salvar. Tente novamente.');
     } finally {

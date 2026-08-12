@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { and, desc, eq, gte, ilike, or } from "drizzle-orm";
 import { Router, type IRouter } from "express";
 import { createClerkClient } from "@clerk/express";
@@ -63,9 +64,14 @@ import {
   disconnectClient,
   restoreSession,
   getActiveClient,
+  registerSSEClient,
+  submit2FA,
 } from "../lib/telegramService";
 
 const router: IRouter = Router();
+
+// ── SSE nonce store (single-use, 30s TTL) ─────────────────────────────────────
+const sseNonces = new Map<string, { userId: string; expiresAt: number }>();
 
 function userId(req: Express.Request): string {
   if (!req.userId) {
@@ -758,5 +764,103 @@ router.patch("/preferences", async (req, res): Promise<void> => {
     }),
   );
 });
+
+// ── Profile name update (via Clerk Management API) ────────────────────────────
+router.post("/profile/name", requireAuth, async (req, res): Promise<void> => {
+  const { firstName, lastName } = req.body as {
+    firstName?: string;
+    lastName?: string;
+  };
+  if (!firstName?.trim()) {
+    res.status(400).json({ error: "firstName is required" });
+    return;
+  }
+  const clerkResp = await fetch(
+    `https://api.clerk.com/v1/users/${userId(req)}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        first_name: firstName.trim(),
+        last_name: lastName?.trim() ?? "",
+      }),
+    },
+  );
+  if (!clerkResp.ok) {
+    console.error("[profile/name] Clerk API error:", await clerkResp.text());
+    res.status(500).json({ error: "Failed to update name" });
+    return;
+  }
+  res.json({ ok: true });
+});
+
+// ── SSE auth — generates a single-use nonce for EventSource ──────────────────
+router.post(
+  "/connection/events/auth",
+  requireAuth,
+  async (req, res): Promise<void> => {
+    const nonce = crypto.randomUUID();
+    sseNonces.set(nonce, { userId: userId(req), expiresAt: Date.now() + 30_000 });
+    setTimeout(() => sseNonces.delete(nonce), 30_000);
+    res.json({ nonce });
+  },
+);
+
+// ── SSE stream — delivers QR rotations, connected and 2FA events ──────────────
+router.get("/connection/events", async (req, res): Promise<void> => {
+  const nonce = req.query.nonce as string;
+  const record = nonce ? sseNonces.get(nonce) : undefined;
+  if (!record || Date.now() > record.expiresAt) {
+    sseNonces.delete(nonce);
+    res.status(401).end();
+    return;
+  }
+  sseNonces.delete(nonce); // single-use
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no"); // disable nginx buffering
+  res.flushHeaders();
+
+  const uid = record.userId;
+  const cleanup = registerSSEClient(uid, res);
+
+  // Keepalive ping every 20s to prevent proxy timeouts
+  const ping = setInterval(() => {
+    if (!res.writableEnded) {
+      res.write(`data: ${JSON.stringify({ type: "ping" })}\n\n`);
+    } else {
+      clearInterval(ping);
+    }
+  }, 20_000);
+
+  req.on("close", () => {
+    clearInterval(ping);
+    cleanup();
+  });
+});
+
+// ── 2FA password submission ───────────────────────────────────────────────────
+router.post(
+  "/connection/2fa",
+  requireAuth,
+  async (req, res): Promise<void> => {
+    const { password } = req.body as { password?: string };
+    if (!password?.trim()) {
+      res.status(400).json({ error: "password is required" });
+      return;
+    }
+    const ok = await submit2FA(userId(req), password);
+    if (!ok) {
+      res.status(404).json({ error: "No pending 2FA for this user" });
+      return;
+    }
+    res.json({ ok: true });
+  },
+);
 
 export default router;

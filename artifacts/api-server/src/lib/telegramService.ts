@@ -3,6 +3,8 @@
  *
  * Responsibilities:
  *  - QR code auth flow (generates QR on server, returns data-URL to frontend)
+ *  - Real-time QR rotation via SSE (Server-Sent Events)
+ *  - 2FA support via password resolver
  *  - Session persistence via AES-256-GCM encryption stored in DB
  *  - Message listener that matches incoming messages against user rules
  *  - Group sync from Telegram dialogs
@@ -35,6 +37,45 @@ interface PendingQR {
 
 const pendingQRs = new Map<string, PendingQR>();
 const activeClients = new Map<string, TelegramClient>();
+
+// ── SSE clients ────────────────────────────────────────────────────────────────
+interface SSEClient {
+  write: (chunk: string) => boolean;
+  writableEnded: boolean;
+}
+
+const sseClients = new Map<string, Set<SSEClient>>();
+
+export function registerSSEClient(userId: string, res: SSEClient): () => void {
+  if (!sseClients.has(userId)) sseClients.set(userId, new Set());
+  sseClients.get(userId)!.add(res);
+  return () => {
+    sseClients.get(userId)?.delete(res);
+    if (sseClients.get(userId)?.size === 0) sseClients.delete(userId);
+  };
+}
+
+function sendSSEEvent(userId: string, event: Record<string, unknown>): void {
+  const clients = sseClients.get(userId);
+  if (!clients || clients.size === 0) return;
+  const payload = `data: ${JSON.stringify(event)}\n\n`;
+  for (const client of clients) {
+    if (!client.writableEnded) {
+      try { client.write(payload); } catch { /* client disconnected */ }
+    }
+  }
+}
+
+// ── 2FA pending resolvers ──────────────────────────────────────────────────────
+const pending2FA = new Map<string, (password: string) => void>();
+
+export async function submit2FA(userId: string, password: string): Promise<boolean> {
+  const resolve = pending2FA.get(userId);
+  if (!resolve) return false;
+  pending2FA.delete(userId);
+  resolve(password);
+  return true;
+}
 
 // ── Crypto helpers ─────────────────────────────────────────────────────────────
 function deriveKey(): Buffer {
@@ -118,6 +159,10 @@ async function onSessionEstablished(
   activeClients.set(userId, client);
   attachMessageListener(userId, client);
   pendingQRs.delete(userId);
+  pending2FA.delete(userId);
+
+  // Notify all SSE clients that connection is established
+  sendSSEEvent(userId, { type: "connected", accountLabel });
 
   // Sync groups in background
   syncGroups(userId, client).catch(console.error);
@@ -331,10 +376,18 @@ export async function startQRAuth(
             const qr: PendingQR = { dataUrl, rawUrl, expiresAt };
             pendingQRs.set(userId, qr);
 
+            // Resolve first QR for the HTTP response
             if (firstQRResolve) {
               firstQRResolve(qr);
               firstQRResolve = null;
             }
+
+            // Push every QR rotation to SSE clients in real-time
+            sendSSEEvent(userId, {
+              type: "qr",
+              dataUrl,
+              expiresAt: expiresAt.toISOString(),
+            });
 
             // Wait before cycling to next QR
             await new Promise<void>((r) => setTimeout(r, 25_000));
@@ -342,17 +395,38 @@ export async function startQRAuth(
             console.error("[telegram] qrCode callback error:", err);
           }
         },
+
         password: async () => {
-          throw new Error(
-            "2FA detectado. Desative temporariamente o 2FA no Telegram e tente novamente.",
-          );
+          // Notify frontend that 2FA password is required
+          sendSSEEvent(userId, { type: "needs_2fa" });
+          console.info("[telegram] 2FA required for user", userId);
+
+          // Wait for user to submit password (5-minute timeout)
+          const pwd = await new Promise<string>((resolve) => {
+            pending2FA.set(userId, resolve);
+            setTimeout(() => {
+              if (pending2FA.get(userId) === resolve) {
+                pending2FA.delete(userId);
+                resolve("");
+              }
+            }, 300_000);
+          });
+
+          if (!pwd) {
+            throw new Error(
+              "Tempo esgotado para inserir a senha de verificação em duas etapas.",
+            );
+          }
+          return pwd;
         },
+
         onError: (err: Error) => {
           console.error("[telegram] signInUserWithQrCode error:", err);
           if (firstQRResolve) {
             firstQRResolve({ error: err.message });
             firstQRResolve = null;
           }
+          sendSSEEvent(userId, { type: "error", message: err.message });
           return false;
         },
       },
@@ -362,6 +436,7 @@ export async function startQRAuth(
     })
     .catch((err: Error) => {
       console.error("[telegram] auth flow failed:", err);
+      sendSSEEvent(userId, { type: "error", message: err.message });
       pendingQRs.delete(userId);
     });
 
@@ -418,6 +493,7 @@ export async function disconnectClient(userId: string): Promise<void> {
     activeClients.delete(userId);
   }
   pendingQRs.delete(userId);
+  pending2FA.delete(userId);
 }
 
 // ── Startup restore ────────────────────────────────────────────────────────────
