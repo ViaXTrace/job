@@ -110,6 +110,32 @@ export const signalwatchCheckoutsTable = pgTable("signalwatch_checkouts", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// ── Auth: email verifications (signup) ────────────────────────────────────────
+export const signalwatchEmailVerificationsTable = pgTable(
+  "signalwatch_email_verifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    email: text("email").notNull(),
+    code: text("code").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    used: boolean("used").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+);
+
+// ── Auth: password reset tokens ────────────────────────────────────────────────
+export const signalwatchPasswordResetsTable = pgTable(
+  "signalwatch_password_resets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    email: text("email").notNull(),
+    tokenHash: text("token_hash").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    used: boolean("used").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+);
+
 export const insertSignalwatchProfileSchema = createInsertSchema(
   signalwatchProfilesTable,
 ).omit({ id: true, createdAt: true, updatedAt: true });
@@ -136,3 +162,5 @@ export type SignalwatchAlert = typeof signalwatchAlertsTable.$inferSelect;
 export type SignalwatchConnection = typeof signalwatchConnectionsTable.$inferSelect;
 export type SignalwatchCheckout = typeof signalwatchCheckoutsTable.$inferSelect;
 export type SignalwatchPreferenceInput = z.infer<typeof insertSignalwatchProfileSchema>;
+export type SignalwatchEmailVerification = typeof signalwatchEmailVerificationsTable.$inferSelect;
+export type SignalwatchPasswordReset = typeof signalwatchPasswordResetsTable.$inferSelect;
