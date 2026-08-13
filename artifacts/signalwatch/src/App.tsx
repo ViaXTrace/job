@@ -40,35 +40,40 @@ const ThemeContext = React.createContext<{ theme: Theme; toggle: () => void }>({
 function useTheme() { return useContext(ThemeContext); }
 
 function ThemeProvider({ children }: { children: ReactNode }) {
-  // Track whether the user has explicitly picked a theme (vs. following system)
-  const [userChosen, setUserChosen] = useState<boolean>(() => !!localStorage.getItem('vx-theme'));
+  // 'vx-theme-explicit' is only written when the user actively toggles the
+  // switch. The old key 'vx-theme' was written automatically on every mount by
+  // a previous version of this code — we ignore it so system preference works.
+  const userChosenRef = useRef<boolean>(!!localStorage.getItem('vx-theme-explicit'));
+
   const [theme, setTheme] = useState<Theme>(() => {
-    const stored = localStorage.getItem('vx-theme') as Theme | null;
+    const stored = localStorage.getItem('vx-theme-explicit') as Theme | null;
     if (stored === 'light' || stored === 'dark') return stored;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
-    // Only persist when the user has made an explicit choice; otherwise system
-    // preference changes must remain free to update the theme.
-    if (userChosen) localStorage.setItem('vx-theme', theme);
-  }, [theme, userChosen]);
+  }, [theme]);
 
-  // Follow system preference changes whenever the user hasn't pinned a choice
+  // Live-follow system preference whenever the user has not explicitly chosen
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (e: MediaQueryListEvent) => {
-      if (!userChosen) setTheme(e.matches ? 'dark' : 'light');
+      if (!userChosenRef.current) setTheme(e.matches ? 'dark' : 'light');
     };
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
-  }, [userChosen]);
+  }, []);
 
   const toggle = useCallback(() => {
-    setUserChosen(true);
-    setTheme(t => t === 'dark' ? 'light' : 'dark');
+    userChosenRef.current = true;
+    setTheme(t => {
+      const next = t === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('vx-theme-explicit', next);
+      return next;
+    });
   }, []);
+
   return <ThemeContext.Provider value={{ theme, toggle }}>{children}</ThemeContext.Provider>;
 }
 // ──────────────────────────────────────────────────────────────────────────────
@@ -320,6 +325,70 @@ function AppShell({ children }: { children: ReactNode }) {
   const summaryQuery = useGetDashboardSummary({ query: { queryKey: getGetDashboardSummaryQueryKey(), staleTime: 30_000 } });
   const unreadCount = summaryQuery.data?.unreadAlerts ?? 0;
   const recentAlerts = summaryQuery.data?.recentAlerts ?? fallbackAlerts;
+
+  // ── Global real-time alert SSE ──────────────────────────────────────────────
+  // Keeps a persistent EventSource alive for the entire AppShell lifetime so
+  // new alerts update the inbox and badge instantly without a page refresh.
+  const qcGlobal = useQueryClient();
+  const sseRef = useRef<EventSource | null>(null);
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectDelay = useRef(2000);
+  const unmounted = useRef(false);
+
+  const connectAlertSSE = useCallback(async () => {
+    if (unmounted.current) return;
+    try {
+      const authResp = await fetch(`${basePath}/api/connection/events/auth`, {
+        method: 'POST',
+        credentials: 'same-origin',
+      });
+      if (!authResp.ok || unmounted.current) return;
+      const { nonce } = await authResp.json() as { nonce: string };
+      if (unmounted.current) return;
+
+      const es = new EventSource(`${basePath}/api/connection/events?nonce=${nonce}`);
+      sseRef.current = es;
+
+      es.onmessage = (e: MessageEvent) => {
+        const data = JSON.parse(e.data as string) as { type: string };
+        if (data.type === 'new_alert') {
+          // Invalidate all alert list variants + dashboard summary so every
+          // open page (alerts list, header bell, sidebar badge) refreshes.
+          qcGlobal.invalidateQueries({ queryKey: getListAlertsQueryKey() });
+          qcGlobal.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+          reconnectDelay.current = 2000; // reset backoff on successful event
+        }
+      };
+
+      es.onerror = () => {
+        es.close();
+        sseRef.current = null;
+        if (!unmounted.current) {
+          // Exponential backoff capped at 30 s
+          reconnectTimer.current = setTimeout(() => {
+            reconnectDelay.current = Math.min(reconnectDelay.current * 2, 30_000);
+            connectAlertSSE();
+          }, reconnectDelay.current);
+        }
+      };
+    } catch {
+      if (!unmounted.current) {
+        reconnectTimer.current = setTimeout(() => connectAlertSSE(), reconnectDelay.current);
+      }
+    }
+  }, [qcGlobal]);
+
+  useEffect(() => {
+    unmounted.current = false;
+    connectAlertSSE();
+    return () => {
+      unmounted.current = true;
+      sseRef.current?.close();
+      sseRef.current = null;
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+    };
+  }, [connectAlertSSE]);
+  // ───────────────────────────────────────────────────────────────────────────
 
   const { theme, toggle } = useTheme();
   return (

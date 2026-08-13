@@ -250,6 +250,9 @@ function attachMessageListener(userId: string, client: TelegramClient): void {
           deliveryStatus: "internal",
         });
 
+        // Push real-time notification to any open browser tabs for this user
+        sendSSEEvent(userId, { type: "new_alert" });
+
         // Increment rule match count
         await db
           .update(signalwatchRulesTable)
